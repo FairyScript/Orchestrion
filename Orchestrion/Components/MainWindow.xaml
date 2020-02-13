@@ -1,0 +1,23 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Orchestrion"
+        xmlns:Components="clr-namespace:Orchestrion.Components" xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="Orchestrion.MainWindow"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid >
+        <ListView x:Name="midiListView" HorizontalAlignment="Left" Height="268" Margin="14,48,0,0" VerticalAlignment="Top" Width="176" ItemsSource="{Binding midiFiles}"/>
+        <ListView x:Name="trackListView" HorizontalAlignment="Left" Height="268" Margin="212,48,0,0" VerticalAlignment="Top" Width="176">
+
+        </ListView>
+        <Label x:Name="label_Midiselect" Content="MIDI选择" HorizontalAlignment="Left" Margin="14,22,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="label_Trackselect" Content="轨道选择" HorizontalAlignment="Left" Margin="212,22,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="importMidiBtn" Content="导入..." HorizontalAlignment="Left" Margin="116,26,0,0" VerticalAlignment="Top" Width="74" Click="importMidiBtn_Click"/>
+        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="440,48,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="25" Width="126"/>
+    </Grid>
+
+
+
+</Window>
