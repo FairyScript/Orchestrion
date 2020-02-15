@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static Orchestrion.Utils.ObservableProperties;
 
 namespace Orchestrion
 {
@@ -21,43 +22,76 @@ namespace Orchestrion
     /// </summary>
     public partial class MainWindow : Window
     {
-        State state = State.GetInstance();
-        public ObservableCollection<string> midiFiles = new ObservableCollection<string>();
+        public ObservableCollection<MidiFileObject> MidiFiles { get; set; } = new ObservableCollection<MidiFileObject>();
+        public ObservableCollection<string> TrackNames { get; set; } = new ObservableCollection<string>();
+
+        private int lastSelectdTrackIndex = -1;
+
         public MainWindow()
         {
             InitializeComponent();
             InitializeDataBinding();
 
-            midiFiles.Add("nii");
 
         }
 
         void InitializeDataBinding()
         {
-            DataContext = this;
-            midiListView.ItemsSource = midiFiles;
+            //midiListView.ItemsSource = midiFiles;
         }
         private void importMidiBtn_Click(object sender, RoutedEventArgs e)
         {
-            midiFiles.Add("IDN");
-            Console.WriteLine(midiFiles.Count);
-            //var midiFileDialog = new Microsoft.Win32.OpenFileDialog {
-            //    Title = "选择MIDI文件",
-            //    Filter = "MIDI文件|*.mid",
-            //    Multiselect = true
-            //};
-            //if(midiFileDialog.ShowDialog() == true)
-            //{
-            //    var midis = new ObservableCollection<string>(midiFileDialog.FileNames);
-            //    if(midiFileSet == null)
-            //    {
-            //        midiFileSet = midis;
-            //    }
-            //    else
-            //    {
-            //        midiFileSet = new ObservableCollection<string>() midiFileSet.Union(midis);
-            //    }
-            //}
+            var midiFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "选择MIDI文件",
+                Filter = "MIDI文件|*.mid",
+                Multiselect = true
+            };
+            if (midiFileDialog.ShowDialog() == true)
+            {
+                foreach (var midi in midiFileDialog.FileNames)
+                {
+                    MidiFiles.Add(new MidiFileObject(midi));
+                }
+
+            }
+            Console.WriteLine("up");
+            
+        }
+
+        private void midiListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            TrackNames.Clear();
+
+            MidiFileObject midi = (MidiFileObject)(sender as ListView).SelectedItem;
+            if (midi == null) return;
+            if(midi.Tracks == null) midi.ReadFile();
+            foreach (var item in midi.TrackNames)
+            {
+                TrackNames.Add(item);
+                
+            }
+
+            trackListView.SelectedIndex = Math.Max(lastSelectdTrackIndex,trackListView.SelectedIndex);
+        }
+
+        private void midiListView_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (MidiFiles.Count > 0)
+            {
+                if (e.Key == Key.Delete || e.Key == Key.Back)
+                {
+                    var delete = MidiFiles.FirstOrDefault(x => ((sender as ListView).SelectedItem as MidiFileObject).Name == x.Name);
+                    if (delete != null) MidiFiles.Remove(delete);
+                }
+                
+            }
+            
+        }
+
+        private void trackListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if((sender as ListView).SelectedIndex != -1) lastSelectdTrackIndex = (sender as ListView).SelectedIndex;
         }
     }
 }

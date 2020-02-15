@@ -68,7 +68,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Converter.cs" />
+    <Compile Include="Declare.cs" />
     <Compile Include="State.cs" />
+    <Compile Include="Utils\MidiHandler.cs" />
+    <Compile Include="Utils\ObservableProperties.cs" />
     <Page Include="Components\ImportMidi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -117,9 +120,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Utils\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.6.1.0\build\Fody.targets" Condition="Exists('..\packages\Fody.6.1.0\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

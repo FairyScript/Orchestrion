@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -12,15 +13,30 @@ namespace Orchestrion
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            //var v = value as ObservableCollection<MidiFileObject>;
+            if (value != null)
+            {
+                //var list = new List<string>();
+                //foreach(var item in v)
+                //{
+                //    list.Add(item.name);
+                //}
+                //return list;
+                return value;
+            }
+            else
+            {
+                return String.Empty;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            return value;
         }
     }
 
+    [ValueConversion(typeof(MidiFileObject), typeof(string))]
     public class TrackNameConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
