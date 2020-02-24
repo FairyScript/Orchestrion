@@ -1,52 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Data;
+using Orchestrion.Utils;
 
 namespace Orchestrion
 {
-    public class MidiNameConverter : IValueConverter
+    [ValueConversion(typeof(bool), typeof(bool))]
+    public class InverseBooleanConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        #region IValueConverter Members
+
+        public object Convert(object value, Type targetType, object parameter,CultureInfo culture)
         {
-            //var v = value as ObservableCollection<MidiFileObject>;
-            if (value != null)
-            {
-                //var list = new List<string>();
-                //foreach(var item in v)
-                //{
-                //    list.Add(item.name);
-                //}
-                //return list;
-                return value;
-            }
-            else
-            {
-                return String.Empty;
-            }
+            if (targetType != typeof(bool))
+                throw new InvalidOperationException("The target must be a boolean");
+
+            return !(bool)value;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter,CultureInfo culture)
         {
-            return value;
-        }
-    }
-
-    [ValueConversion(typeof(MidiFileObject), typeof(string))]
-    public class TrackNameConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        #endregion
     }
 }

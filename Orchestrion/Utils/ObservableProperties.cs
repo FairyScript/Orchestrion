@@ -147,7 +147,8 @@ namespace Orchestrion.Utils
                 this.Items.Add(item);
             }
 
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add));
+            //OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add));
+            NotifyCollectionChanged();//Constructor supports only the 'Reset' action.
         }
 
         public void NotifyCollectionChanged()

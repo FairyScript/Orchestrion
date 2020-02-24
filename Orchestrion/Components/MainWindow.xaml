@@ -4,11 +4,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Orchestrion"
-        xmlns:Components="clr-namespace:Orchestrion.Components" xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="Orchestrion.MainWindow"
+        x:Class="Orchestrion.MainWindow"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Window.Resources>
-        <local:MidiNameConverter x:Key="MidiNameConverter"/>
+        <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
     </Window.Resources>
 
     <Grid >
@@ -23,7 +23,13 @@
         <Label x:Name="label_Midiselect" Content="MIDI选择" HorizontalAlignment="Left" Margin="14,22,0,0" VerticalAlignment="Top"/>
         <Label x:Name="label_Trackselect" Content="轨道选择" HorizontalAlignment="Left" Margin="212,22,0,0" VerticalAlignment="Top"/>
         <Button x:Name="importMidiBtn" Content="导入..." HorizontalAlignment="Left" Margin="116,26,0,0" VerticalAlignment="Top" Width="74" Click="importMidiBtn_Click"/>
-        <TextBlock x:Name="textBlock" HorizontalAlignment="Left" Margin="440,48,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Height="25" Width="126"/>
+        <Label x:Name="ffxivThreadLabel" Content="FFXIV进程" HorizontalAlignment="Left" Margin="410,48,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ffxivThreadSelect" HorizontalAlignment="Left" Margin="481,48,0,0" VerticalAlignment="Top" Width="120" Height="25"/>
+        <Label x:Name="label_Copy" Content="网络延迟" HorizontalAlignment="Left" Margin="410,88,0,0" VerticalAlignment="Top" Width="66"/>
+        <TextBox x:Name="webLatency" HorizontalAlignment="Left" Height="24" Margin="481,88,0,0" VerticalAlignment="Top" Width="71" MaxLength="4" IsEnabled="{Binding state.AutoPing, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" PreviewTextInput="NumberValidationTextBox"/>
+        <CheckBox x:Name="autoPing" Content="自动" HorizontalAlignment="Left" Margin="557,94,0,0" VerticalAlignment="Top" IsChecked="{Binding state.AutoPing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" RenderTransformOrigin="0.42,1.8"/>
+        <Button x:Name="captureBtn" Content="开始同步" HorizontalAlignment="Left" Margin="410,158,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="captureBtn_Click" Background="#FF8DC1F8"/>
+        <CheckBox x:Name="checkBox" Content="伴奏模式" HorizontalAlignment="Left" Margin="410,130,0,0" VerticalAlignment="Top" IsChecked="{Binding state.IsAccompanyMode, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
     </Grid>
 
 

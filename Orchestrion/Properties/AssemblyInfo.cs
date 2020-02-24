@@ -10,9 +10,9 @@ using System.Windows;
 [assembly: AssemblyTitle("Orchestrion")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("queb.fun")]
 [assembly: AssemblyProduct("Orchestrion")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyCopyright("Copyright ©  2020 FairyScript")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

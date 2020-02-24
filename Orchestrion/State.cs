@@ -64,15 +64,29 @@ namespace Orchestrion
             }
         }
 
-        private int _lastSelectedTrackIndex = -1;
-        public int LastSelectedTrackIndex
+        private bool _autoPing;
+        public bool AutoPing
         {
-            get => _lastSelectedTrackIndex;
+            get => _autoPing;
             set
             {
-                if (value != _lastSelectedTrackIndex)
+                if (value != _autoPing)
                 {
-                    _lastSelectedTrackIndex = value;
+                    _autoPing = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        private bool _isAccompanyMode;
+        public bool IsAccompanyMode
+        {
+            get => _isAccompanyMode;
+            set
+            {
+                if (value != _isAccompanyMode)
+                {
+                    _isAccompanyMode = value;
                     NotifyPropertyChanged();
                 }
             }
