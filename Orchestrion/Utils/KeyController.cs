@@ -12,7 +12,7 @@ namespace Orchestrion.Utils
     class KeyController
     {
         [DllImport("User32.dll")]
-        public static extern void keybd_event(Keys bVk, byte bScan, int dwFlags, int dwExtraInfo);
+        private static extern void keybd_event(Keys bVk, byte bScan, int dwFlags, int dwExtraInfo);
 
         [DllImport("user32.dll")]
         private static extern uint MapVirtualKey(uint uCode, uint uMapType);

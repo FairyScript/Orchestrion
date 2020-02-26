@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace Orchestrion
 {
@@ -14,13 +15,9 @@ namespace Orchestrion
     /// </summary>
     public class Config
     {
-        public enum OpCodeEnum
-        {
-            COUNTDOWN,
-            ENSEMBLE_RECEIVE
-        }
+        
 
-        private static string configPath = Application.UserAppDataPath + "\\config.json";
+        private static readonly string configPath = Path.GetDirectoryName(Application.UserAppDataPath) + "\\config.json";
 
         private static ConfigObject _config;
         public static ConfigObject config
@@ -35,7 +32,6 @@ namespace Orchestrion
                 if (value != _config)
                 {
                     _config = value;
-                    File.WriteAllText(configPath,JsonConvert.SerializeObject(value));
                 }
             }
         }
@@ -45,23 +41,46 @@ namespace Orchestrion
             try
             {
                 string text = File.ReadAllText(configPath);
-                return JsonConvert.DeserializeObject<ConfigObject>(text);
+                ConfigObject config = JsonConvert.DeserializeObject<ConfigObject>(text);
+                if (config.ConfigVersion != ConfigObject.version) throw new Exception("ConfigFile version changed");
+                return config;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                return ConfigObject.GetDefaultConfig();
+                Logger.Warning(e.Message);
+                config = ConfigObject.GetDefaultConfig();
+                Save();
+                return config;
             }
+        }
+
+        public static void Save()
+        {
+            File.WriteAllText(configPath, JsonConvert.SerializeObject(_config));
         }
 
     }
 
     public class ConfigObject
     {
+        public enum OpCodeEnum
+        {
+            COUNTDOWN,
+            ENSEMBLE_RECEIVE
+        }
+
+        /// <summary>
+        /// Config File version
+        /// </summary>
+        public const int version = 1;
+        public int ConfigVersion { get; set; } = version;
+        /* ------- */
         public bool IsBeta { get; set; }
         public string NtpServer { get; set; }
         public Dictionary<int, int> KeyMap { get; set; }
-        //public Dictionary<string, ModifierKeys>
-        public Dictionary<Config.OpCodeEnum, uint> OpCode { get; set; }
+        public Dictionary<string, KeyCombination> HotkeyBindings { get; set; }
+        public Dictionary<OpCodeEnum, uint> OpCode { get; set; }
+
         ConfigObject() { }
         public static ConfigObject GetDefaultConfig()
         {
@@ -109,12 +128,24 @@ namespace Orchestrion
                     {83, 189},
                     {84, 187}
                 },
-                OpCode = new Dictionary<Config.OpCodeEnum, uint>
+                OpCode = new Dictionary<OpCodeEnum, uint>
                 {
-                    {Config.OpCodeEnum.COUNTDOWN,0x036b },
-                    {Config.OpCodeEnum.ENSEMBLE_RECEIVE,0x02eb }
+                    {OpCodeEnum.COUNTDOWN,0x036b },
+                    {OpCodeEnum.ENSEMBLE_RECEIVE,0x02eb }
+                },
+                HotkeyBindings = new Dictionary<string, KeyCombination>
+                {
+                    {"StartPlay",new KeyCombination{Key = Key.F10,ModifierKeys = ModifierKeys.Control } },
+                    {"StopPlay",new KeyCombination{Key = Key.F11,ModifierKeys = ModifierKeys.Control } }
                 }
             };
         }
+    }
+
+    public class KeyCombination
+    {
+        public Key Key;
+        public ModifierKeys ModifierKeys;
+        public KeyCombination() { }
     }
 }

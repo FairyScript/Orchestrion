@@ -3,6 +3,7 @@ using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using System.Collections.Generic;
 using System.Linq;
+using static Orchestrion.Utils.ObservableProperties;
 
 namespace Orchestrion.Utils
 {
@@ -11,12 +12,13 @@ namespace Orchestrion.Utils
 
         private MidiFile midiFile;
         private TempoMap tempoMap;
-
+        private Playback playback;
+        private OutputDevice outputDevice;
         private string Path { get; set; }
         public string Name { get; private set; }
         public List<TrackChunk> Tracks { get; private set; }
         public List<string> TrackNames { get; private set; }
-
+        public int SelectedIndex { get; set; } = 0;
         public MidiFileObject(string path)
         {
             Path = path;
@@ -50,14 +52,31 @@ namespace Orchestrion.Utils
             }
         }
 
-        public Playback GetPlayback()
+        public void StartPlayback()
         {
-            return midiFile.GetPlayback(OutputDevice.GetByName("Microsoft GS Wavetable Synth"));//全部音轨的试听
+            if (!State.state.PlayingFlag)
+            {
+                State.state.ReadyFlag = false;
+                GetPlayback();
+                playback?.Start();
+            }
         }
 
-        public Playback GetPlayback(int index,bool isAccompanyMode)
+        public void StopPlayback()
         {
-            Playback playback;
+            playback?.Stop();
+            playback?.Dispose();
+            outputDevice?.Dispose();
+            State.state.PlayingFlag = false;
+        }
+
+        public void GetPlayback()
+        {
+            GetPlayback(SelectedIndex, State.state.IsAccompanyMode);
+        }
+        public void GetPlayback(int index, bool isAccompanyMode)
+        {
+            Playback pb;
             if (isAccompanyMode)
             {
                 //伴奏模式
@@ -68,15 +87,17 @@ namespace Orchestrion.Utils
                 {
                     events.Add(e.Events);
                 }
-                playback = new Playback(events,tempoMap, OutputDevice.GetByName("Microsoft GS Wavetable Synth"));
+                outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
+                pb = new Playback(events, tempoMap, outputDevice);
             }
             else
             {
                 //合奏模式
-                playback = new Playback(Tracks.ElementAt(index).Events, tempoMap);
-                playback.EventPlayed += Playback_EventPlayed;
+                pb = new Playback(Tracks.ElementAt(index).Events, tempoMap);
+                pb.EventPlayed += Playback_EventPlayed;
             }
-            return playback;
+            pb.Finished += (_, e) => State.state.PlayingFlag = false;
+            playback = pb;
         }
 
         /// <summary>

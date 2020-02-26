@@ -1,0 +1,19 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Orchestrion.Components"
+        xmlns:Orchestrion="clr-namespace:Orchestrion" x:Class="Orchestrion.Components.SettingWindow"
+        mc:Ignorable="d"
+        Title="SettingWindow" Height="320" Width="500">
+    <Window.Resources>
+        <Orchestrion:HotKeyConverter x:Key="HotKeyConverter"/>
+    </Window.Resources>
+    <Grid>
+
+        <TextBox x:Name="hotKeyBind" HorizontalAlignment="Left" Height="26" Margin="100,142,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" PreviewKeyDown="hotKeyBind_PreviewKeyDown" InputMethod.IsInputMethodEnabled="False" Tag="StartPlay" />
+        <Label x:Name="label" Content="开始演奏" HorizontalAlignment="Left" Margin="29,142,0,0" VerticalAlignment="Top" Width="66"/>
+
+    </Grid>
+</Window>

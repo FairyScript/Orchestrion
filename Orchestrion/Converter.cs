@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using System.Windows.Data;
-using Orchestrion.Utils;
+using System.Windows.Input;
 
 namespace Orchestrion
 {
@@ -24,5 +26,37 @@ namespace Orchestrion
         }
 
         #endregion
+    }
+
+    [ValueConversion(typeof(KeyCombination),typeof(string))]
+    public class HotKeyConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Build the shortcut key name.
+            var val = value as KeyCombination;
+            StringBuilder shortcutText = new StringBuilder();
+            if ((val.ModifierKeys & ModifierKeys.Control) != 0)
+            {
+                shortcutText.Append("Ctrl+");
+            }
+            if ((val.ModifierKeys & ModifierKeys.Shift) != 0)
+            {
+                shortcutText.Append("Shift+");
+            }
+            if ((val.ModifierKeys & ModifierKeys.Alt) != 0)
+            {
+                shortcutText.Append("Alt+");
+            }
+            shortcutText.Append(val.Key.ToString());
+
+            // Update the text box.
+            return shortcutText.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

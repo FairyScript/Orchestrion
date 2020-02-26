@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -14,25 +15,66 @@ namespace Orchestrion.Utils
     public class Network
     {
         private FFXIVNetworkMonitor monitor;
-
+        internal class ParseResult
+        {
+            public FFXIVMessageHeader header;
+            public byte[] data;
+        }
         public Network(uint processId)
         {
             monitor = new FFXIVNetworkMonitor();
-            //RegisterToFirewall();
             monitor.MonitorType = TCPNetworkMonitor.NetworkMonitorType.RawSocket;
             monitor.MessageReceived = MessageReceived;
-            monitor.MessageSent = MessageSent;
+            //monitor.MessageSent = MessageSent;
             monitor.ProcessID = processId;
         }
+        public void Start() => monitor.Start();
+        public void Stop() => monitor.Stop();
 
         private void MessageSent(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
         {
-            throw new NotImplementedException();
+            //TODO: Ping Analysis
         }
 
         private void MessageReceived(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
         {
-            throw new NotImplementedException();
+            var res = Parse(message);
+
+
+            if (res.header.MessageType == 0x036B)//CountDown
+            {
+                Console.WriteLine("CountDown");
+                var countDownTime = res.data[36];
+                var nameBytes = new byte[18];
+                var timeStampBytes = new byte[4];
+                Array.Copy(res.data, 41, nameBytes, 0, 18);
+                Array.Copy(res.data, 24, timeStampBytes, 0, 4);
+                var name = Encoding.UTF8.GetString(nameBytes) ?? "";
+                //Play?.Invoke(this, new PlayEvent(1, 0, BitConverter.ToInt32(timeStampBytes, 0), name));
+            }
+
+
+            if (res.header.MessageType == 0x02eb) //ensemble
+            {
+                Console.WriteLine("ensemble ready");
+                var timeStampBytes = new byte[4];
+                Array.Copy(res.data, 24, timeStampBytes, 0, 4);
+                Console.WriteLine(BitConverter.ToInt32(timeStampBytes, 0));
+                //Play?.Invoke(this, new PlayEvent(0, 5, BitConverter.ToInt32(timeStampBytes, 0), "合奏助手"));
+
+            }
+        }
+        private static ParseResult Parse(byte[] data)
+        {
+            GCHandle handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            FFXIVMessageHeader head = (FFXIVMessageHeader)Marshal.PtrToStructure(handle.AddrOfPinnedObject(), typeof(FFXIVMessageHeader));
+            handle.Free();
+
+            ParseResult result = new ParseResult();
+            result.header = head;
+            result.data = data;
+
+            return result;
         }
 
         public static void RegisterToFirewall()
