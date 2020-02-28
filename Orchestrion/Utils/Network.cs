@@ -11,6 +11,9 @@ namespace Orchestrion.Utils
     public class Network
     {
         private FFXIVNetworkMonitor monitor;
+        public delegate void NetPlayEvent(int mode, int interval, int timestamp);
+        public NetPlayEvent OnReceived;
+        public NetPlayEvent OnSent;
         internal class ParseResult
         {
             public FFXIVMessageHeader header;
@@ -46,18 +49,16 @@ namespace Orchestrion.Utils
                 Array.Copy(res.data, 41, nameBytes, 0, 18);
                 Array.Copy(res.data, 24, timeStampBytes, 0, 4);
                 var name = Encoding.UTF8.GetString(nameBytes) ?? "";
-                //Play?.Invoke(this, new PlayEvent(1, 0, BitConverter.ToInt32(timeStampBytes, 0), name));
+                OnReceived?.Invoke(0,0,BitConverter.ToInt32(timeStampBytes, 0));
             }
-
 
             if (res.header.MessageType == 0x02d2) //ensemble
             {
                 Logger.Info("ensemble ready");
                 var timeStampBytes = new byte[4];
                 Array.Copy(res.data, 24, timeStampBytes, 0, 4);
-                Console.WriteLine(BitConverter.ToInt32(timeStampBytes, 0));
-                //Play?.Invoke(this, new PlayEvent(0, 5, BitConverter.ToInt32(timeStampBytes, 0), "合奏助手"));
 
+                OnReceived?.Invoke(1,5, BitConverter.ToInt32(timeStampBytes, 0));
             }
         }
         private static ParseResult Parse(byte[] data)

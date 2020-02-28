@@ -86,5 +86,19 @@ namespace Orchestrion
                 }
             }
         }
+
+        private bool _midiDeviceConnected;
+        public bool MidiDeviceConnected
+        {
+            get => _midiDeviceConnected;
+            set
+            {
+                if (value != _midiDeviceConnected)
+                {
+                    _midiDeviceConnected = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
     }
 }

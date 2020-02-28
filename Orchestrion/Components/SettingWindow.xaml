@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Orchestrion.Components"
         xmlns:Orchestrion="clr-namespace:Orchestrion" x:Class="Orchestrion.Components.SettingWindow"
         mc:Ignorable="d"
-        Title="SettingWindow" Height="320" Width="500" Initialized="Window_Initialized" Closed="Window_Closed">
+        Title="设置" Height="320" Width="500" Initialized="Window_Initialized" Closed="Window_Closed">
     <Window.Resources>
         <Orchestrion:HotKeyConverter x:Key="HotKeyConverter"/>
     </Window.Resources>

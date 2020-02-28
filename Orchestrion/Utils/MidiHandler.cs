@@ -56,17 +56,17 @@ namespace Orchestrion.Utils
             if (!State.state.PlayingFlag)
             {
                 State.state.ReadyFlag = false;
-                GetPlayback();
                 playback?.Start();
+                Logger.Info($"start play");
             }
         }
 
         public void StopPlayback()
         {
             playback?.Stop();
-            playback?.Dispose();
             outputDevice?.Dispose();
             State.state.PlayingFlag = false;
+            Logger.Info($"stop play");
         }
 
         public void GetPlayback()
@@ -93,9 +93,9 @@ namespace Orchestrion.Utils
             {
                 //合奏模式
                 pb = new Playback(Tracks.ElementAt(index).Events, tempoMap);
-                pb.EventPlayed += Playback_EventPlayed;
+                pb.EventPlayed += EventPlayed;
             }
-            pb.Finished += (_, e) => State.state.PlayingFlag = false;
+            pb.Finished += (_, e) => StopPlayback();
             playback = pb;
         }
 
@@ -104,7 +104,7 @@ namespace Orchestrion.Utils
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Playback_EventPlayed(object sender, MidiEventPlayedEventArgs e)
+        private void EventPlayed(object sender, MidiEventPlayedEventArgs e)
         {
             switch (e.Event)
             {
@@ -122,4 +122,5 @@ namespace Orchestrion.Utils
         }
 
     }
+
 }

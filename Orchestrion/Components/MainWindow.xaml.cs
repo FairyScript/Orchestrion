@@ -1,15 +1,18 @@
-﻿using NHotkey.Wpf;
+﻿using Melanchall.DryWetMidi.Core;
 using Orchestrion.Components;
 using Orchestrion.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using static Orchestrion.Utils.ObservableProperties;
+using InputDevice = Melanchall.DryWetMidi.Devices.InputDevice;
 
 namespace Orchestrion
 {
@@ -22,6 +25,7 @@ namespace Orchestrion
         public ObservableCollectionEx<string> TrackNames { get; set; } = new ObservableCollectionEx<string>();
 
         public ObservableCollectionEx<uint> FFProcessList { get; set; } = new ObservableCollectionEx<uint>();
+        public ObservableCollectionEx<InputDevice> MidiDeviceList { get; set; } = new ObservableCollectionEx<InputDevice>();
         public State state { get; set; } = State.state;
         public ConfigObject config { get; set; } = Config.config;
         private MidiFileObject activeMidi;
@@ -31,8 +35,41 @@ namespace Orchestrion
         public MainWindow()
         {
             InitializeComponent();
+            this.Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Alpha";
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            Hotkey.Initial(new WindowInteropHelper(this).Handle);
+            InitializeHotKey();
             InitializeEvent();
+            InitializeDevice();
             Network.RegisterToFirewall();
+        }
+
+        private void InitializeDevice()
+        {
+            foreach (var item in InputDevice.GetAll())
+            {
+                item.EventReceived += (sender, ee) =>
+                {
+                    switch (ee.Event)
+                    {
+                        case NoteOnEvent @event:
+                            {
+                                KeyController.KeyboardPress(@event.NoteNumber);
+                                break;
+                            }
+                        case NoteOffEvent @event:
+                            {
+                                KeyController.KeyboardRelease(@event.NoteNumber);
+                                break;
+                            }
+                    }
+                };
+                MidiDeviceList.Add(item);
+
+            }
         }
 
         private void InitializeEvent()
@@ -67,6 +104,18 @@ namespace Orchestrion
                     {
                         readyBtn.Background = System.Windows.Media.Brushes.AliceBlue;
                         readyBtn.Content = "定时演奏";
+                    }
+                }
+
+                if(e.PropertyName == nameof(state.MidiDeviceConnected))
+                {
+                    if (state.MidiDeviceConnected)
+                    {
+                        deviceConnectBtn.Content = "断开连接";
+                    }
+                    else
+                    {
+                        deviceConnectBtn.Content = "开始连接";
                     }
                 }
             };
@@ -107,6 +156,7 @@ namespace Orchestrion
                 timer.Elapsed += Timer_Elapsed;
 
                 timer.Start();
+                activeMidi.GetPlayback();
                 Logger.Info($"timer start,Interval:{time}ms");
             }
             catch (Exception e)
@@ -120,16 +170,14 @@ namespace Orchestrion
         {
             timer?.Dispose();
             activeMidi?.StopPlayback();
-            Logger.Info($"stop play");
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Dispatcher.Invoke(new Action(() =>
+            Dispatcher.Invoke(() =>
             {
                 activeMidi?.StartPlayback();
-            }));
-            Logger.Info($"start play");
+            });
         }
 
         private void importMidiBtn_Click(object sender, RoutedEventArgs e)
@@ -142,9 +190,9 @@ namespace Orchestrion
             };
             if (midiFileDialog.ShowDialog() == true)
             {
-                foreach (var midi in midiFileDialog.FileNames)
+                foreach (var path in midiFileDialog.FileNames)
                 {
-                    MidiFiles.Add(new MidiFileObject(midi));
+                    MidiFiles.Add(new MidiFileObject(path));
                 }
 
             }
@@ -172,24 +220,32 @@ namespace Orchestrion
 
         private void midiListView_KeyDown(object sender, KeyEventArgs e)
         {
-            if (MidiFiles.Count > 0)
+            var listView = sender as ListView;
+            if (MidiFiles.Count > 0 && listView.SelectedItems.Count > 0)
             {
                 //delete item
                 if (e.Key == Key.Delete || e.Key == Key.Back)
                 {
-                    var delete = MidiFiles.FirstOrDefault(x => ((sender as ListView).SelectedItem as MidiFileObject).Name == x.Name);
-                    if (delete != null) MidiFiles.Remove(delete);
+                    var list = new List<MidiFileObject>();
+                    foreach (MidiFileObject item in listView.SelectedItems)
+                    {
+                        list.Add(item);
+                    }
+                    foreach (MidiFileObject item in list)
+                    {
+                        MidiFiles.Remove(item);
+                    }
                 }
-
+                if (listView.SelectedIndex == -1) listView.SelectedIndex = 0;//选中第一个
             }
 
         }
 
         private void trackListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (midiListView.SelectedValue == null) return;//空检测
             Logger.Debug("track select change");
             var viewIndex = (sender as ListView).SelectedIndex;
-
             if (viewIndex == -1)
             {
                 (sender as ListView).SelectedIndex = (midiListView.SelectedItem as MidiFileObject).SelectedIndex;
@@ -228,6 +284,31 @@ namespace Orchestrion
         {
             if (ffxivProcessSelect.SelectedItem == null) return;
             network = new Network((uint)ffxivProcessSelect.SelectedItem);
+            network.OnReceived += (mode, interval,timestamp) =>
+            {
+                Dispatcher.Invoke(() => {
+                    switch (mode)
+                    {
+                        case 0:
+                            {
+                                Logger.Debug("net stop");
+                                StopPlay();
+                                break;
+                            }
+                        case 1:
+                            {
+                                Logger.Debug("net start");
+                                DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
+                                DateTime dt = startTime.AddSeconds(timestamp + interval);
+
+                                var msTime = (dt - DateTime.Now).TotalMilliseconds;
+                                StartPlay((int)msTime);
+                                break;
+                            }
+                    }
+                });
+
+            };
         }
 
         private void readyBtn_Click(object sender, RoutedEventArgs e)
@@ -245,10 +326,57 @@ namespace Orchestrion
             setting.Show();
         }
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
+        private void midiListView_DragEnter(object sender, DragEventArgs e)
         {
-            Hotkey.Initial(new WindowInteropHelper(this).Handle);
-            InitializeHotKey();
+            Console.WriteLine("enter");
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effects = DragDropEffects.Move;
+            else e.Effects = DragDropEffects.None;
+        }
+
+        private void midiListView_Drop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            {
+                // Note that you can have more than one file.
+                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+                Regex midipattern = new Regex(@"\.midi?$");
+                // Assuming you have one file that you care about, pass it off to whatever
+                // handling code you have defined.
+                foreach (var filename in files)
+                {
+                    if(midipattern.IsMatch(filename)) MidiFiles.Add(new MidiFileObject(filename));
+                }
+            }
+            e.Handled = true;
+        }
+
+        private void deviceConnect_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!state.MidiDeviceConnected)
+                {
+                    (midiDeviceSelect.SelectedItem as InputDevice)?.StartEventsListening();
+                    state.MidiDeviceConnected = true;
+                }
+                else
+                {
+                    (midiDeviceSelect.SelectedItem as InputDevice)?.StopEventsListening();
+                    state.MidiDeviceConnected = false;
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        private void refreshDevice_Click(object sender, RoutedEventArgs e)
+        {
+            MidiDeviceList.Clear();
+            InitializeDevice();
+            midiDeviceSelect.SelectedIndex = 0;
         }
     }
 }
