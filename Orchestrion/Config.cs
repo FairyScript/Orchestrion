@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
+﻿using Newtonsoft.Json;
+using Orchestrion.Utils;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.IO;
 using System.Windows.Forms;
 using System.Windows.Input;
 
@@ -15,7 +13,7 @@ namespace Orchestrion
     /// </summary>
     public class Config
     {
-        
+
 
         private static readonly string configPath = Path.GetDirectoryName(Application.UserAppDataPath) + "\\config.json";
 
@@ -24,7 +22,7 @@ namespace Orchestrion
         {
             get
             {
-                if(_config == null) _config = ReadConfig();
+                if (_config == null) _config = ReadConfig();
                 return _config;
             }
             set
@@ -142,10 +140,4 @@ namespace Orchestrion
         }
     }
 
-    public class KeyCombination
-    {
-        public Key Key;
-        public ModifierKeys ModifierKeys;
-        public KeyCombination() { }
-    }
 }

@@ -2,13 +2,9 @@
 using Machina.FFXIV;
 using NetFwTypeLib;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 namespace Orchestrion.Utils
 {
@@ -43,7 +39,7 @@ namespace Orchestrion.Utils
 
             if (res.header.MessageType == 0x036B)//CountDown
             {
-                Console.WriteLine("CountDown");
+                Logger.Info("CountDown");
                 var countDownTime = res.data[36];
                 var nameBytes = new byte[18];
                 var timeStampBytes = new byte[4];
@@ -56,7 +52,7 @@ namespace Orchestrion.Utils
 
             if (res.header.MessageType == 0x02eb) //ensemble
             {
-                Console.WriteLine("ensemble ready");
+                Logger.Info("ensemble ready");
                 var timeStampBytes = new byte[4];
                 Array.Copy(res.data, 24, timeStampBytes, 0, 4);
                 Console.WriteLine(BitConverter.ToInt32(timeStampBytes, 0));
@@ -114,7 +110,7 @@ namespace Orchestrion.Utils
                     firewallPolicy.Rules.Add(firewallRule);
                 }
             }
-            catch(UnauthorizedAccessException)
+            catch (UnauthorizedAccessException)
             {
                 ProcessStartInfo psi = new ProcessStartInfo();
                 psi.FileName = Process.GetCurrentProcess().MainModule.FileName;
@@ -125,9 +121,9 @@ namespace Orchestrion.Utils
                     Process.Start(psi);
                     Application.Current.Shutdown();
                 }
-                catch (Exception eee)
+                catch (Exception e)
                 {
-                    MessageBox.Show(eee.Message);
+                    MessageBox.Show(e.Message);
                 }
             }
             catch (Exception)

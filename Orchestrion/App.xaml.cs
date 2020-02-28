@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -30,7 +25,7 @@ namespace Orchestrion
         //UI线程未捕获异常处理事件（UI主线程）
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            ExceptionMessageBox(e.Exception,"UI线程异常");
+            ExceptionMessageBox(e.Exception, "UI线程异常");
 
             e.Handled = true;//表示异常已处理，可以继续运行
         }
@@ -49,7 +44,7 @@ namespace Orchestrion
             ExceptionMessageBox(e.Exception);
         }
 
-        public void ExceptionMessageBox(Exception e,string title = "出错啦")
+        public void ExceptionMessageBox(Exception e, string title = "出错啦")
         {
 
             string str =

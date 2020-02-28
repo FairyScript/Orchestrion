@@ -1,15 +1,16 @@
-﻿using System;
+﻿using NHotkey.Wpf;
+using Orchestrion.Components;
+using Orchestrion.Utils;
+using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using NHotkey.Wpf;
-using Orchestrion.Utils;
+using System.Windows.Interop;
+
 namespace Orchestrion
 {
     /// <summary>
@@ -23,25 +24,23 @@ namespace Orchestrion
         public ObservableCollectionEx<uint> FFProcessList { get; set; } = new ObservableCollectionEx<uint>();
         public State state { get; set; } = State.state;
         public ConfigObject config { get; set; } = Config.config;
+        private MidiFileObject activeMidi;
         private Network network;
         private System.Timers.Timer timer;
 
         public MainWindow()
         {
             InitializeComponent();
-            //InitializeHotKey();
             InitializeEvent();
             Network.RegisterToFirewall();
         }
 
-        
-
         private void InitializeEvent()
         {
             //state event
-            state.PropertyChanged += (object sender, PropertyChangedEventArgs e)=> 
+            state.PropertyChanged += (object sender, PropertyChangedEventArgs e) =>
             {
-                if(e.PropertyName == nameof(state.IsCaptureFlag))
+                if (e.PropertyName == nameof(state.IsCaptureFlag))
                 {
                     if (state.IsCaptureFlag)
                     {
@@ -75,17 +74,18 @@ namespace Orchestrion
 
         private void InitializeHotKey()
         {
-            var hotKeyEvents = new Dictionary<string, EventHandler<NHotkey.HotkeyEventArgs>>();
-            hotKeyEvents.Add("StartPlay", (sender, e) =>StartPlay(1000));
-            hotKeyEvents.Add("StopPlay", (sender, e) => StopPlay());
-
+            var actions = new Dictionary<string, Action>
+            {
+                {"StartPlay",()=>StartPlay(1000) },
+                {"StopPlay",StopPlay }
+            };
             try
             {
                 foreach (var item in config.HotkeyBindings)
                 {
-                    HotkeyManager.Current.AddOrReplace(item.Key, item.Value.Key, item.Value.ModifierKeys, hotKeyEvents[item.Key]);
+                    Hotkey.Add(item.Key, item.Value,actions[item.Key]);
                 }
-                
+
             }
             catch (Exception)
             {
@@ -111,24 +111,23 @@ namespace Orchestrion
             }
             catch (Exception e)
             {
-                using (var form = new System.Windows.Forms.Form { TopMost = true })
-                {
-                    System.Windows.Forms.MessageBox.Show(form, e.Message);
-                }
+                Logger.Error(e.Message);
+                
             }
-            
+
         }
         private void StopPlay()
         {
             timer?.Dispose();
-            (midiListView.SelectedItem as MidiFileObject).StopPlayback();
+            activeMidi?.StopPlayback();
             Logger.Info($"stop play");
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Dispatcher.Invoke(new Action(() => {
-                (midiListView.SelectedItem as MidiFileObject).StartPlayback();
+            Dispatcher.Invoke(new Action(() =>
+            {
+                activeMidi?.StartPlayback();
             }));
             Logger.Info($"start play");
         }
@@ -148,7 +147,7 @@ namespace Orchestrion
                     MidiFiles.Add(new MidiFileObject(midi));
                 }
 
-            }            
+            }
         }
 
         private void midiListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -157,7 +156,7 @@ namespace Orchestrion
 
             MidiFileObject midi = (MidiFileObject)(sender as ListView).SelectedItem;
             if (midi == null) return;
-
+            activeMidi = midi;
             try
             {
                 if (midi.Tracks == null) midi.ReadFile();
@@ -181,9 +180,9 @@ namespace Orchestrion
                     var delete = MidiFiles.FirstOrDefault(x => ((sender as ListView).SelectedItem as MidiFileObject).Name == x.Name);
                     if (delete != null) MidiFiles.Remove(delete);
                 }
-                
+
             }
-            
+
         }
 
         private void trackListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -203,6 +202,11 @@ namespace Orchestrion
 
         private void captureBtn_Click(object sender, RoutedEventArgs e)
         {
+            if(network == null)
+            {
+                Logger.Error("没有FFXIV进程!");
+                return;
+            }
             state.IsCaptureFlag = !state.IsCaptureFlag;
         }
 
@@ -212,7 +216,7 @@ namespace Orchestrion
             e.Handled = regex.IsMatch(e.Text);
         }
 
-        
+
         private void ffxivProcessSelect_Initialized(object sender, EventArgs e)
         {
             FFProcessList.Clear();
@@ -223,13 +227,28 @@ namespace Orchestrion
         private void ffxivProcessSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ffxivProcessSelect.SelectedItem == null) return;
-            Console.WriteLine("net");
             network = new Network((uint)ffxivProcessSelect.SelectedItem);
         }
 
         private void readyBtn_Click(object sender, RoutedEventArgs e)
         {
             StartPlay(1000);
+        }
+
+        private void settingBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var setting = new SettingWindow();
+            setting.Closed += (s, ee) =>
+            {
+                InitializeHotKey();
+            };
+            setting.Show();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            Hotkey.Initial(new WindowInteropHelper(this).Handle);
+            InitializeHotKey();
         }
     }
 }

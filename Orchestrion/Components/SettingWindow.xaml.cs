@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using Orchestrion.Utils;
+using static Orchestrion.Utils.ObservableProperties;
 
 namespace Orchestrion.Components
 {
@@ -19,6 +12,7 @@ namespace Orchestrion.Components
     /// </summary>
     public partial class SettingWindow : Window
     {
+        public Dictionary<string, Prop<KeyCombination>> HotkeyBinding { get; set; } = new Dictionary<string, Prop<KeyCombination>>();
         public SettingWindow()
         {
             InitializeComponent();
@@ -26,7 +20,7 @@ namespace Orchestrion.Components
 
         private void hotKeyBind_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // The text box grabs all input.
+            // The text box grabs all input.0
             e.Handled = true;
 
             // Fetch the actual shortcut key.
@@ -41,6 +35,27 @@ namespace Orchestrion.Components
                 return;
             }
             if (Keyboard.Modifiers == ModifierKeys.None) return;
+
+            HotkeyBinding[(string)(sender as TextBox).Tag].Value = new KeyCombination { Key = key, ModifierKeys = Keyboard.Modifiers };
+            return;
+        }
+
+        private void Window_Initialized(object sender, System.EventArgs e)
+        {
+            Hotkey.RemoveAll();
+            foreach (var item in Config.config.HotkeyBindings)
+            {
+                HotkeyBinding.Add(item.Key, new Prop<KeyCombination> { Value = item.Value });
+            }
+        }
+
+        private void Window_Closed(object sender, System.EventArgs e)
+        {
+            foreach (var item in HotkeyBinding)
+            {
+                Config.config.HotkeyBindings[item.Key] = item.Value.Value;
+            }
+            Config.Save();
         }
     }
 }

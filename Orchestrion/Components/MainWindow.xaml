@@ -7,7 +7,7 @@
         xmlns:input="clr-namespace:System.Windows.Input;assembly=PresentationCore"
         x:Class="Orchestrion.MainWindow"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Loaded="Window_Loaded">
     <Window.Resources>
         <local:HotKeyConverter x:Key="HotKeyConverter"/>
         <local:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
@@ -33,8 +33,9 @@
         <Button x:Name="captureBtn" Content="开始同步" HorizontalAlignment="Left" Margin="410,158,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="captureBtn_Click"/>
         <CheckBox x:Name="checkBox" Content="伴奏模式" HorizontalAlignment="Left" Margin="410,130,0,0" VerticalAlignment="Top" IsChecked="{Binding state.IsAccompanyMode, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
         <Button x:Name="button" Content="刷新" HorizontalAlignment="Left" Margin="606,48,0,0" VerticalAlignment="Top" Width="40" Height="25" Click="ffxivProcessSelect_Initialized"/>
+        <Button x:Name="readyBtn" Content="定时演奏" HorizontalAlignment="Left" Margin="521,158,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="readyBtn_Click" IsEnabled="False"/>
         <Button x:Name="captureBtn_Copy" Content="开始同步" HorizontalAlignment="Left" Margin="410,158,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="captureBtn_Click"/>
-        <Button x:Name="readyBtn" Content="定时演奏" HorizontalAlignment="Left" Margin="521,158,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="readyBtn_Click"/>
+        <Button x:Name="settingBtn" Content="设置" HorizontalAlignment="Left" Margin="521,242,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="settingBtn_Click"/>
     </Grid>
 
 

@@ -6,14 +6,16 @@
         xmlns:local="clr-namespace:Orchestrion.Components"
         xmlns:Orchestrion="clr-namespace:Orchestrion" x:Class="Orchestrion.Components.SettingWindow"
         mc:Ignorable="d"
-        Title="SettingWindow" Height="320" Width="500">
+        Title="SettingWindow" Height="320" Width="500" Initialized="Window_Initialized" Closed="Window_Closed">
     <Window.Resources>
         <Orchestrion:HotKeyConverter x:Key="HotKeyConverter"/>
     </Window.Resources>
     <Grid>
 
-        <TextBox x:Name="hotKeyBind" HorizontalAlignment="Left" Height="26" Margin="100,142,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" PreviewKeyDown="hotKeyBind_PreviewKeyDown" InputMethod.IsInputMethodEnabled="False" Tag="StartPlay" />
-        <Label x:Name="label" Content="开始演奏" HorizontalAlignment="Left" Margin="29,142,0,0" VerticalAlignment="Top" Width="66"/>
+        <TextBox x:Name="hotKeyBind" HorizontalAlignment="Left" Height="26" Margin="94,36,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" PreviewKeyDown="hotKeyBind_PreviewKeyDown" InputMethod.IsInputMethodEnabled="False" Tag="StartPlay" Text="{Binding HotkeyBinding[StartPlay].Value, Converter={StaticResource HotKeyConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:SettingWindow}}}" />
+        <Label x:Name="label" Content="开始演奏" HorizontalAlignment="Left" Margin="23,36,0,0" VerticalAlignment="Top" Width="66"/>
+        <TextBox x:Name="hotKeyBind_Copy" HorizontalAlignment="Left" Height="26" Margin="94,75,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" PreviewKeyDown="hotKeyBind_PreviewKeyDown" InputMethod.IsInputMethodEnabled="False" Tag="StopPlay" Text="{Binding HotkeyBinding[StopPlay].Value, Converter={StaticResource HotKeyConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:SettingWindow}}}" />
+        <Label x:Name="label_Copy" Content="停止演奏" HorizontalAlignment="Left" Margin="23,75,0,0" VerticalAlignment="Top" Width="66"/>
 
     </Grid>
 </Window>

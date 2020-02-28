@@ -3,7 +3,6 @@ using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using System.Collections.Generic;
 using System.Linq;
-using static Orchestrion.Utils.ObservableProperties;
 
 namespace Orchestrion.Utils
 {

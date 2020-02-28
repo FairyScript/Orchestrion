@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Media;
 
 namespace Orchestrion.Utils
 {
@@ -25,6 +24,22 @@ namespace Orchestrion.Utils
                 idList.Add((uint)item.Id);
             }
             return idList;
+        }
+
+        public static List<T> GetChildObjects<T>(DependencyObject obj, Type typename) where T : FrameworkElement
+        {
+            DependencyObject child;
+            List<T> childList = new List<T>();
+            for (int i = 0; i <= VisualTreeHelper.GetChildrenCount(obj) - 1; i++)
+            {
+                child = VisualTreeHelper.GetChild(obj, i);
+                if (child is T && (((T)child).GetType() == typename))
+                {
+                    childList.Add((T)child);
+                }
+                childList.AddRange(GetChildObjects<T>(child, typename));
+            }
+            return childList;
         }
     }
 }
