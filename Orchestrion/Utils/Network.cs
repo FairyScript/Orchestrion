@@ -37,7 +37,7 @@ namespace Orchestrion.Utils
             var res = Parse(message);
 
 
-            if (res.header.MessageType == 0x036B)//CountDown
+            if (res.header.MessageType == 0x01ac)//CountDown
             {
                 Logger.Info("CountDown");
                 var countDownTime = res.data[36];
@@ -50,7 +50,7 @@ namespace Orchestrion.Utils
             }
 
 
-            if (res.header.MessageType == 0x02eb) //ensemble
+            if (res.header.MessageType == 0x02d2) //ensemble
             {
                 Logger.Info("ensemble ready");
                 var timeStampBytes = new byte[4];
