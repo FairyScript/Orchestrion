@@ -23,8 +23,12 @@ namespace Orchestrion.Utils
 
         internal static void KeyboardRelease(SevenBitNumber noteNumber)
         {
-            Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
-            keybd_event(keycode, 0, 2, 0);
+            if (noteNumber <= 84 && noteNumber >= 48)
+            {
+                Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
+                keybd_event(keycode, 0, 2, 0);
+            }
+                
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Orchestrion.Components;
 using Orchestrion.Utils;
 using System;
 using System.Collections.Generic;
@@ -45,6 +46,7 @@ namespace Orchestrion
             }
             catch (Exception e)
             {
+                TopmostMessageBox.Show("配置文件已经初始化!");
                 Logger.Warning(e.Message);
                 config = ConfigObject.GetDefaultConfig();
                 Save();
@@ -63,14 +65,14 @@ namespace Orchestrion
     {
         public enum OpCodeEnum
         {
-            COUNTDOWN,
-            ENSEMBLE_RECEIVE
+            Countdown,
+            EnsembleReceive
         }
 
         /// <summary>
         /// Config File version
         /// </summary>
-        public const int version = 1;
+        public const int version = 2;
         public int ConfigVersion { get; set; } = version;
         /* ------- */
         public bool IsBeta { get; set; }
@@ -128,8 +130,8 @@ namespace Orchestrion
                 },
                 OpCode = new Dictionary<OpCodeEnum, uint>
                 {
-                    {OpCodeEnum.COUNTDOWN,0x036b },
-                    {OpCodeEnum.ENSEMBLE_RECEIVE,0x02eb }
+                    {OpCodeEnum.Countdown,0x01ac },
+                    {OpCodeEnum.EnsembleReceive,0x02d2 }
                 },
                 HotkeyBindings = new Dictionary<string, KeyCombination>
                 {

@@ -374,6 +374,10 @@ namespace Orchestrion
 
         private void refreshDevice_Click(object sender, RoutedEventArgs e)
         {
+            foreach (var item in MidiDeviceList)
+            {
+                item.Dispose();
+            }
             MidiDeviceList.Clear();
             InitializeDevice();
             midiDeviceSelect.SelectedIndex = 0;

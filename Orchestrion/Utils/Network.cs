@@ -40,7 +40,7 @@ namespace Orchestrion.Utils
             var res = Parse(message);
 
 
-            if (res.header.MessageType == 0x01ac)//CountDown
+            if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.Countdown])//CountDown
             {
                 Logger.Info("CountDown");
                 var countDownTime = res.data[36];
@@ -52,7 +52,7 @@ namespace Orchestrion.Utils
                 OnReceived?.Invoke(0,0,BitConverter.ToInt32(timeStampBytes, 0));
             }
 
-            if (res.header.MessageType == 0x02d2) //ensemble
+            if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.EnsembleReceive]) //ensemble
             {
                 Logger.Info("ensemble ready");
                 var timeStampBytes = new byte[4];
