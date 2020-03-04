@@ -1,0 +1,72 @@
+﻿<Window x:Class="Orchestrion.Components.KeyBindingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Orchestrion.Components"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="KeyBindingWindow" Height="350" Width="500" Closed="Window_Closed">
+    <Grid>
+        <Grid x:Name="Grid1" HorizontalAlignment="Left" Height="140" Margin="26,17,0,0" VerticalAlignment="Top" Width="398">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="textBlock" HorizontalAlignment="Center" Margin="0" TextWrapping="Wrap" Text="高" VerticalAlignment="Center" Grid.Row="1"/>
+            <TextBlock x:Name="textBlock_Copy" HorizontalAlignment="Center" Margin="0" TextWrapping="Wrap" Text="中" VerticalAlignment="Center" Grid.Row="2"/>
+            <TextBlock x:Name="textBlock_Copy1" HorizontalAlignment="Center" TextWrapping="Wrap" Text="低" VerticalAlignment="Center" Grid.Row="3"/>
+            <TextBlock x:Name="textBlock_Copy2" HorizontalAlignment="Center" TextWrapping="Wrap" Text="C" VerticalAlignment="Center" Grid.Column="1"/>
+            <TextBlock x:Name="textBlock_Copy3" HorizontalAlignment="Center" TextWrapping="Wrap" Text="D" VerticalAlignment="Center" Grid.Column="2"/>
+            <TextBlock x:Name="textBlock_Copy4" HorizontalAlignment="Center" TextWrapping="Wrap" Text="E" VerticalAlignment="Center" Grid.Column="3"/>
+            <TextBlock x:Name="textBlock_Copy5" HorizontalAlignment="Center" TextWrapping="Wrap" Text="F" VerticalAlignment="Center" Grid.Column="4"/>
+            <TextBlock x:Name="textBlock_Copy6" HorizontalAlignment="Center" TextWrapping="Wrap" Text="G" VerticalAlignment="Center" Grid.Column="5"/>
+            <TextBlock x:Name="textBlock_Copy7" HorizontalAlignment="Center" TextWrapping="Wrap" Text="A" VerticalAlignment="Center" Grid.Column="6"/>
+            <TextBlock x:Name="textBlock_Copy8" HorizontalAlignment="Center" TextWrapping="Wrap" Text="B" VerticalAlignment="Center" Grid.Column="7"/>
+
+        </Grid>
+        <Grid x:Name="Grid2" HorizontalAlignment="Left" Height="140" Margin="26,165,0,0" VerticalAlignment="Top" Width="299">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBlock x:Name="textBlock1" HorizontalAlignment="Center" Margin="0" TextWrapping="Wrap" Text="高" VerticalAlignment="Center" Grid.Row="1"/>
+            <TextBlock x:Name="textBlock_Copy9" HorizontalAlignment="Center" Margin="0" TextWrapping="Wrap" Text="中" VerticalAlignment="Center" Grid.Row="2"/>
+            <TextBlock x:Name="textBlock_Copy10" HorizontalAlignment="Center" TextWrapping="Wrap" Text="低" VerticalAlignment="Center" Grid.Row="3"/>
+            <TextBlock x:Name="textBlock_Copy11" HorizontalAlignment="Center" TextWrapping="Wrap" Text="#C" VerticalAlignment="Center" Grid.Column="1"/>
+            <TextBlock x:Name="textBlock_Copy12" HorizontalAlignment="Center" TextWrapping="Wrap" Text="Eb" VerticalAlignment="Center" Grid.Column="2"/>
+            <TextBlock x:Name="textBlock_Copy13" HorizontalAlignment="Center" TextWrapping="Wrap" Text="#F" VerticalAlignment="Center" Grid.Column="3"/>
+            <TextBlock x:Name="textBlock_Copy14" HorizontalAlignment="Center" TextWrapping="Wrap" Text="#G" VerticalAlignment="Center" Grid.Column="4"/>
+            <TextBlock x:Name="textBlock_Copy15" HorizontalAlignment="Center" TextWrapping="Wrap" Text="Bb" VerticalAlignment="Center" Grid.Column="5"/>
+
+        </Grid>
+        <TextBox x:Name="textBoxC6" HorizontalAlignment="Left" Height="24" Margin="429,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="45" Initialized="InputBox_Initialized" InputMethod.IsInputMethodEnabled="False">
+            <TextBox.Tag>
+                <sys:Int32>84</sys:Int32>
+            </TextBox.Tag>
+        </TextBox>
+    </Grid>
+</Window>

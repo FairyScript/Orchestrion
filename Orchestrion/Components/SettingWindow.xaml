@@ -16,6 +16,7 @@
         <Label x:Name="label" Content="开始演奏" HorizontalAlignment="Left" Margin="23,36,0,0" VerticalAlignment="Top" Width="66"/>
         <TextBox x:Name="hotKeyBind_Copy" HorizontalAlignment="Left" Height="26" Margin="94,75,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="80" PreviewKeyDown="hotKeyBind_PreviewKeyDown" InputMethod.IsInputMethodEnabled="False" Tag="StopPlay" Text="{Binding HotkeyBinding[StopPlay].Value, Converter={StaticResource HotKeyConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:SettingWindow}}}" />
         <Label x:Name="label_Copy" Content="停止演奏" HorizontalAlignment="Left" Margin="23,75,0,0" VerticalAlignment="Top" Width="66"/>
+        <Button x:Name="button" Content="重置配置" HorizontalAlignment="Left" Height="38" Margin="376,225,0,0" VerticalAlignment="Top" Width="79"/>
 
     </Grid>
 </Window>

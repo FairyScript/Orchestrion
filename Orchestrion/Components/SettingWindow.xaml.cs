@@ -43,10 +43,7 @@ namespace Orchestrion.Components
         private void Window_Initialized(object sender, System.EventArgs e)
         {
             Hotkey.RemoveAll();
-            foreach (var item in Config.config.HotkeyBindings)
-            {
-                HotkeyBinding.Add(item.Key, new Prop<KeyCombination> { Value = item.Value });
-            }
+
         }
 
         private void Window_Closed(object sender, System.EventArgs e)

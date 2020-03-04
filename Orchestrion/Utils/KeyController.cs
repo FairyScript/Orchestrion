@@ -1,7 +1,6 @@
 ﻿using Melanchall.DryWetMidi.Common;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-
 namespace Orchestrion.Utils
 {
     class KeyController

@@ -1,6 +1,7 @@
 ﻿using Orchestrion.Utils;
 using System;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -52,6 +53,35 @@ namespace Orchestrion
 
             // Update the text box.
             return shortcutText.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    [ValueConversion(typeof(Key), typeof(string))]
+    public class KeyMapConverter : IValueConverter
+    {
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern int ToUnicode(
+        uint virtualKeyCode,
+        uint scanCode,
+        byte[] keyboardState,
+        StringBuilder receivingBuffer,
+        int bufferSize,
+        uint flags
+        );
+        private KeyConverter kc = new KeyConverter();
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            // Build the shortcut key name.
+
+
+            // Update the text box.
+            return kc.ConvertToString((Key)value);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

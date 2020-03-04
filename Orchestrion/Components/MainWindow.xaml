@@ -45,6 +45,7 @@
         </ComboBox>
         <Button x:Name="deviceConnectBtn" Content="开始连接" HorizontalAlignment="Left" Margin="606,231,0,0" VerticalAlignment="Top" Width="61" Height="25" Click="deviceConnect_Click"/>
         <Button x:Name="refreshDeviceBtn" Content="刷新" HorizontalAlignment="Left" Margin="672,231,0,0" VerticalAlignment="Top" Width="40" Height="25" Click="refreshDevice_Click" IsEnabled="{Binding state.MidiDeviceConnected, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}"/>
+        <Button x:Name="KeyBindingBtn" Content="键位设置" HorizontalAlignment="Left" Margin="472,276,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="KeyBindingBtn_Click"/>
     </Grid>
 
 

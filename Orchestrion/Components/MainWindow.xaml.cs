@@ -1,10 +1,12 @@
-﻿using Melanchall.DryWetMidi.Core;
+﻿using GuerrillaNtp;
+using Melanchall.DryWetMidi.Core;
 using Orchestrion.Components;
 using Orchestrion.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -31,6 +33,7 @@ namespace Orchestrion
         private MidiFileObject activeMidi;
         private Network network;
         private System.Timers.Timer timer;
+        private TimeSpan systemTimeOffset = TimeSpan.Zero;
 
         public MainWindow()
         {
@@ -84,6 +87,18 @@ namespace Orchestrion
                         network?.Start();
                         captureBtn.Background = System.Windows.Media.Brushes.Pink;
                         captureBtn.Content = "停止同步";
+
+                        try
+                        {
+                            using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
+                                systemTimeOffset = ntp.GetCorrectionOffset();
+                        }
+                        catch (Exception ex)
+                        {
+                            // timeout or bad SNTP reply
+                            systemTimeOffset = TimeSpan.Zero;
+                            MessageBox.Show($"更新系统时间失败!\n{ex.Message}");
+                        }
                     }
                     else
                     {
@@ -142,22 +157,25 @@ namespace Orchestrion
             }
         }
 
-        void StartPlay(int time)
+        void StartPlay(double time)
         {
             try
             {
                 if ((MidiFileObject)midiListView.SelectedValue == null) throw new Exception("没有MIDI文件!");
-
-                timer = new System.Timers.Timer
+                if(time > 0)
                 {
-                    Interval = time,
-                    AutoReset = false
-                };
-                timer.Elapsed += Timer_Elapsed;
+                    timer = new System.Timers.Timer
+                    {
+                        Interval = time,
+                        AutoReset = false
+                    };
+                    timer.Elapsed += Timer_Elapsed;
 
-                timer.Start();
-                activeMidi.GetPlayback();
-                Logger.Info($"timer start,Interval:{time}ms");
+                    timer.Start();
+                    activeMidi.GetPlayback();
+                    Logger.Info($"timer start,Interval:{time}ms");
+                }
+                
             }
             catch (Exception e)
             {
@@ -301,8 +319,8 @@ namespace Orchestrion
                                 DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
                                 DateTime dt = startTime.AddSeconds(timestamp + interval);
 
-                                var msTime = (dt - DateTime.Now).TotalMilliseconds;
-                                StartPlay((int)msTime);
+                                var msTime = (dt - DateTime.Now + systemTimeOffset).TotalMilliseconds;
+                                StartPlay(msTime);
                                 break;
                             }
                     }
@@ -381,6 +399,12 @@ namespace Orchestrion
             MidiDeviceList.Clear();
             InitializeDevice();
             midiDeviceSelect.SelectedIndex = 0;
+        }
+
+        private void KeyBindingBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var bind = new KeyBindingWindow();
+            bind.Show();
         }
     }
 }
