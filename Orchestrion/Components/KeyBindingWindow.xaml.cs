@@ -1,18 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using static Orchestrion.Utils.ObservableProperties;
+using Newtonsoft.Json;
+using Orchestrion.Utils;
 
 namespace Orchestrion.Components
 {
@@ -22,13 +16,13 @@ namespace Orchestrion.Components
     public partial class KeyBindingWindow : Window
     {
         public Dictionary<int, int> Keymap { get; set; } = Config.config.KeyMap;
-        int[,] keymap1 = new int[3, 7]
+        int[,] noteMap1 = new int[3, 7]
         {
             {72,74,76,77,79,81,83},
             {60,62,64,65,67,69,71},
             {48,50,52,53,55,57,59}
         };
-        int[,] keymap2 = new int[3, 5]
+        int[,] noteMap2 = new int[3, 5]
         {
             {73,75,78,80,82 },
             {61,63,66,68,70 },
@@ -42,8 +36,8 @@ namespace Orchestrion.Components
 
         private void InitializeInputBox()
         {
-            MakeGrid(Grid1, keymap1);
-            MakeGrid(Grid2, keymap2);
+            MakeGrid(Grid1, noteMap1);
+            MakeGrid(Grid2, noteMap2);
         }
 
         private void MakeGrid(Grid grid,int[,] keymap)
@@ -58,32 +52,41 @@ namespace Orchestrion.Components
                         Tag = keymap[i, j],
                     };
                     inputBox.PreviewKeyDown += InputBox_PreviewKeyDown;
-                    inputBox.Initialized += InputBox_Initialized;
                     InputMethod.SetIsInputMethodEnabled(inputBox, false);
-                    //var binding = new Binding
-                    //{
-                    //    Source = KeyBindings[keymap[i, j]].Value,
-                    //    //Path = new PropertyPath("Text"),
-                    //    Mode = BindingMode.OneWay,
-                    //    Converter = new KeyMapConverter()
-                    //};
-                    //inputBox.SetBinding(TextBox.TextProperty, binding);
+
                     grid.Children.Add(inputBox);
                     Grid.SetColumn(inputBox, j + 1);
                     Grid.SetRow(inputBox, i + 1);
                 }
             }
         }
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            InitializeContent();
+        }
+
+        private void InitializeContent()
+        {
+            foreach (var item in Utils.Utils.FindVisualChildren<TextBox>(this))
+            {
+                var tag = (int)(item.Tag);
+                Console.WriteLine(tag);
+                if (Keymap.ContainsKey(tag))
+                {
+                    item.Text = GetKeyChar(Keymap[tag]).ToString();
+                }
+            }
+        }
 
         [DllImport("user32.dll")]
         private static extern uint MapVirtualKey(uint uCode, uint uMapType);
-
         public static char GetKeyChar(int k)
         {
             var nonVirtualKey = MapVirtualKey((uint)k, 2);
             var mappedChar = Convert.ToChar(nonVirtualKey);
             return mappedChar;
         }
+
         private void InputBox_Initialized(object sender, EventArgs e)
         {
             var tb = sender as TextBox;
@@ -93,7 +96,6 @@ namespace Orchestrion.Components
                 tb.Text = GetKeyChar(Keymap[tag]).ToString();
             }
         }
-
 
         private void InputBox_PreviewKeyDown(object sender, KeyEventArgs e)
         {
@@ -124,5 +126,39 @@ namespace Orchestrion.Components
             Config.config.KeyMap = Keymap;
             Config.Save();
         }
+
+        private void importBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "选择配置文件",
+                Filter = "配置文件|*.cfg",
+                Multiselect = false
+            };
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string text = File.ReadAllText(openFileDialog.FileName);
+                Keymap = JsonConvert.DeserializeObject<Dictionary<int, int>>(text);
+                InitializeContent();
+            }
+        }
+
+        private void exportBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "保存至...",
+                Filter = "配置文件|*.cfg",
+                FileName = "setting"
+
+            };
+            if(saveFileDialog.ShowDialog() == true)
+            {
+                string text = JsonConvert.SerializeObject(Keymap);
+                File.WriteAllText(saveFileDialog.FileName,text);
+            }
+        }
+
+
     }
 }

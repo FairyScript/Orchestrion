@@ -16,7 +16,7 @@ namespace Orchestrion
     {
 
 
-        private static readonly string configPath = Path.GetDirectoryName(Application.UserAppDataPath) + "\\config.json";
+        public static readonly string configPath = Path.GetDirectoryName(Application.UserAppDataPath) + "\\config.json";
 
         private static ConfigObject _config;
         public static ConfigObject config
@@ -41,7 +41,13 @@ namespace Orchestrion
             {
                 string text = File.ReadAllText(configPath);
                 ConfigObject config = JsonConvert.DeserializeObject<ConfigObject>(text);
-                if (config.ConfigVersion != ConfigObject.version) throw new Exception("ConfigFile version changed");
+                if(config.GameVersion < ConfigObject.version)
+                {
+                    var defaultConfig = ConfigObject.GetDefaultConfig();
+                    config.OpCode = defaultConfig.OpCode;
+                    config.GameVersion = defaultConfig.GameVersion;
+                    Save();
+                }
                 return config;
             }
             catch (Exception e)
@@ -69,11 +75,8 @@ namespace Orchestrion
             EnsembleReceive
         }
 
-        /// <summary>
-        /// Config File version
-        /// </summary>
-        public const int version = 2;
-        public int ConfigVersion { get; set; } = version;
+        public const double version = 5.11;
+        public double GameVersion { get; set; } = version;
         /* ------- */
         public bool IsBeta { get; set; }
         public string NtpServer { get; set; }

@@ -5,6 +5,7 @@ using Orchestrion.Utils;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -60,11 +61,13 @@ namespace Orchestrion
                     {
                         case NoteOnEvent @event:
                             {
+                                Logger.Debug($"keyboard: {@event.NoteNumber} pressed");
                                 KeyController.KeyboardPress(@event.NoteNumber);
                                 break;
                             }
                         case NoteOffEvent @event:
                             {
+                                Logger.Debug($"keyboard: {@event.NoteNumber} release");
                                 KeyController.KeyboardRelease(@event.NoteNumber);
                                 break;
                             }
@@ -321,6 +324,7 @@ namespace Orchestrion
 
                                 var msTime = (dt - DateTime.Now + systemTimeOffset).TotalMilliseconds;
                                 StartPlay(msTime);
+                                Logger.Debug($"{msTime}ms");
                                 break;
                             }
                     }
@@ -405,6 +409,11 @@ namespace Orchestrion
         {
             var bind = new KeyBindingWindow();
             bind.Show();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            Process.GetCurrentProcess().Kill();
         }
     }
 }

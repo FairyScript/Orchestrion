@@ -6,9 +6,14 @@
         xmlns:local="clr-namespace:Orchestrion.Components"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="KeyBindingWindow" Height="350" Width="500" Closed="Window_Closed">
+        Title="演奏按键设置" Height="350" Width="500" Closed="Window_Closed" Loaded="Window_Loaded">
     <Grid>
-        <Grid x:Name="Grid1" HorizontalAlignment="Left" Height="140" Margin="26,17,0,0" VerticalAlignment="Top" Width="398">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="79*"/>
+            <ColumnDefinition Width="316*"/>
+            <ColumnDefinition Width="100*"/>
+        </Grid.ColumnDefinitions>
+        <Grid x:Name="Grid1" HorizontalAlignment="Left" Height="140" Margin="26,17,0,0" VerticalAlignment="Top" Width="398" Grid.ColumnSpan="3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -37,7 +42,7 @@
             <TextBlock x:Name="textBlock_Copy8" HorizontalAlignment="Center" TextWrapping="Wrap" Text="B" VerticalAlignment="Center" Grid.Column="7"/>
 
         </Grid>
-        <Grid x:Name="Grid2" HorizontalAlignment="Left" Height="140" Margin="26,165,0,0" VerticalAlignment="Top" Width="299">
+        <Grid x:Name="Grid2" HorizontalAlignment="Left" Height="140" Margin="26,165,0,0" VerticalAlignment="Top" Width="299" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
@@ -63,10 +68,12 @@
             <TextBlock x:Name="textBlock_Copy15" HorizontalAlignment="Center" TextWrapping="Wrap" Text="Bb" VerticalAlignment="Center" Grid.Column="5"/>
 
         </Grid>
-        <TextBox x:Name="textBoxC6" HorizontalAlignment="Left" Height="24" Margin="429,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="45" Initialized="InputBox_Initialized" InputMethod.IsInputMethodEnabled="False">
+        <TextBox x:Name="textBoxC6" HorizontalAlignment="Left" Height="24" Margin="35,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="44" InputMethod.IsInputMethodEnabled="False" Grid.Column="2" PreviewKeyDown="InputBox_PreviewKeyDown">
             <TextBox.Tag>
                 <sys:Int32>84</sys:Int32>
             </TextBox.Tag>
         </TextBox>
+        <Button x:Name="importBtn" Content="导入" Grid.Column="1" HorizontalAlignment="Left" Margin="263,280,0,0" VerticalAlignment="Top" Width="60" Height="25" Click="importBtn_Click" Grid.ColumnSpan="2"/>
+        <Button x:Name="exportBtn" Content="导出" Grid.Column="2" HorizontalAlignment="Left" Margin="12,280,0,0" VerticalAlignment="Top" Width="60" Height="25" Click="exportBtn_Click"/>
     </Grid>
 </Window>

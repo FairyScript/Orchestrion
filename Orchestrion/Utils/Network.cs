@@ -78,19 +78,7 @@ namespace Orchestrion.Utils
         {
             try
             {
-                Process p = new Process();
                 var exePath = Process.GetCurrentProcess().MainModule.FileName;
-                //p.StartInfo.FileName = "cmd.exe"; //命令
-                //p.StartInfo.UseShellExecute = false; //不启用shell启动进程
-                //p.StartInfo.RedirectStandardInput = true; // 重定向输入
-                //p.StartInfo.RedirectStandardOutput = true; // 重定向标准输出
-                //p.StartInfo.RedirectStandardError = true; // 重定向错误输出 
-                //p.StartInfo.CreateNoWindow = true; // 不创建新窗口
-                //p.Start();
-                //p.StandardInput.WriteLine("netsh advfirewall firewall add rule name=\"WinClient\" dir=in program=\"" + exePath + "\" action=allow localip=any remoteip=any security=notrequired description=DFAssist"); //cmd执行的语句
-                //                                                                                                                                                                                                        //p.StandardOutput.ReadToEnd(); //读取命令执行信息
-                //p.StandardInput.WriteLine("exit"); //退出
-
                 INetFwPolicy2 firewallPolicy = Utils.GetInstance<INetFwPolicy2>("HNetCfg.FwPolicy2");
                 INetFwRule firewallRule = Utils.GetInstance<INetFwRule>("HNetCfg.FWRule");
                 bool isExists = false;
@@ -120,7 +108,7 @@ namespace Orchestrion.Utils
                 try
                 {
                     Process.Start(psi);
-                    Application.Current.Shutdown();
+                    Environment.Exit(0);
                 }
                 catch (Exception e)
                 {
