@@ -13,17 +13,13 @@ namespace Orchestrion.Utils
             return (T)Activator.CreateInstance(Type.GetTypeFromProgID(typeName));
         }
 
-        public static List<uint> FindFFProcess()
+        public static List<Process> FindFFProcess()
         {
             var processes = new List<Process>();
-            var idList = new List<uint>();
             processes.AddRange(Process.GetProcessesByName("ffxiv"));
             processes.AddRange(Process.GetProcessesByName("ffxiv_dx11"));
-            foreach (var item in processes)
-            {
-                idList.Add((uint)item.Id);
-            }
-            return idList;
+
+            return processes;
         }
 
         public static List<T> GetChildObjects<T>(DependencyObject obj, Type typename) where T : FrameworkElement

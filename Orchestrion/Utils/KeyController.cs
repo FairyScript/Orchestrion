@@ -27,7 +27,14 @@ namespace Orchestrion.Utils
                 Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
                 keybd_event(keycode, 0, 2, 0);
             }
-                
+        }
+
+        internal static void Reset()
+        {
+            for (int i = 48; i <= 84; i++)
+            {
+                keybd_event((Keys)i, 0, 2, 0);
+            }
         }
     }
 }

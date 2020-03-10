@@ -1,6 +1,7 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -53,18 +54,23 @@ namespace Orchestrion.Utils
 
         public void StartPlayback()
         {
-            if (!State.state.PlayingFlag)
-            {
-                State.state.ReadyFlag = false;
+                KeyController.Reset();
                 playback?.Start();
                 Logger.Info($"start play");
-            }
+        }
+        public void StartPlayback(TimeSpan time)
+        {
+                KeyController.Reset();
+                playback?.MoveToTime(new MetricTimeSpan(time.Duration()));
+                playback?.Start();
+                Logger.Info($"start play");
         }
 
         public void StopPlayback()
         {
             playback?.Stop();
             outputDevice?.Dispose();
+            KeyController.Reset();
             State.state.PlayingFlag = false;
             Logger.Info($"stop play");
         }

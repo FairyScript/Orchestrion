@@ -34,7 +34,8 @@ namespace Orchestrion
         private MidiFileObject activeMidi;
         private Network network;
         private System.Timers.Timer timer;
-        private TimeSpan systemTimeOffset = TimeSpan.Zero;
+        private TimeSpan TimeWhenPlay { get; set; } = TimeSpan.Zero;
+        private TimeSpan SystemTimeOffset { get; set; } = TimeSpan.Zero;
 
         public MainWindow()
         {
@@ -94,12 +95,12 @@ namespace Orchestrion
                         try
                         {
                             using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
-                                systemTimeOffset = ntp.GetCorrectionOffset();
+                                SystemTimeOffset = ntp.GetCorrectionOffset();
                         }
                         catch (Exception ex)
                         {
                             // timeout or bad SNTP reply
-                            systemTimeOffset = TimeSpan.Zero;
+                            SystemTimeOffset = TimeSpan.Zero;
                             MessageBox.Show($"更新系统时间失败!\n{ex.Message}");
                         }
                     }
@@ -165,6 +166,7 @@ namespace Orchestrion
             try
             {
                 if ((MidiFileObject)midiListView.SelectedValue == null) throw new Exception("没有MIDI文件!");
+                if (state.PlayingFlag) return;
                 if(time > 0)
                 {
                     timer = new System.Timers.Timer
@@ -175,6 +177,7 @@ namespace Orchestrion
                     timer.Elapsed += Timer_Elapsed;
 
                     timer.Start();
+                    state.PlayingFlag = true;
                     activeMidi.GetPlayback();
                     Logger.Info($"timer start,Interval:{time}ms");
                 }
@@ -191,6 +194,7 @@ namespace Orchestrion
         {
             timer?.Dispose();
             activeMidi?.StopPlayback();
+            state.PlayingFlag = false;
         }
 
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -297,7 +301,12 @@ namespace Orchestrion
         private void ffxivProcessSelect_Initialized(object sender, EventArgs e)
         {
             FFProcessList.Clear();
-            FFProcessList.AddRange(Utils.Utils.FindFFProcess());
+            var processList = new List<uint>();
+            foreach (var item in Utils.Utils.FindFFProcess())
+            {
+                processList.Add((uint)item.Id);
+            }
+            FFProcessList.AddRange(processList);
             ffxivProcessSelect.SelectedIndex = 0;
         }
 
@@ -322,7 +331,7 @@ namespace Orchestrion
                                 DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
                                 DateTime dt = startTime.AddSeconds(timestamp + interval);
 
-                                var msTime = (dt - DateTime.Now + systemTimeOffset).TotalMilliseconds;
+                                var msTime = (dt - (DateTime.Now + SystemTimeOffset)).TotalMilliseconds;
                                 StartPlay(msTime);
                                 Logger.Debug($"{msTime}ms");
                                 break;
