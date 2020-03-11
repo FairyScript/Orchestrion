@@ -4,6 +4,7 @@ using Melanchall.DryWetMidi.Interaction;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace Orchestrion.Utils
 {
@@ -63,7 +64,8 @@ namespace Orchestrion.Utils
                 KeyController.Reset();
                 playback?.MoveToTime(new MetricTimeSpan(time.Duration()));
                 playback?.Start();
-                Logger.Info($"start play");
+            State.state.PlayingFlag = true;
+            Logger.Info($"start play");
         }
 
         public void StopPlayback()

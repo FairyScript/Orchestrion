@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -14,7 +13,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using static Orchestrion.Utils.ObservableProperties;
 using InputDevice = Melanchall.DryWetMidi.Devices.InputDevice;
 
 namespace Orchestrion
@@ -26,21 +24,22 @@ namespace Orchestrion
     {
         public ObservableCollectionEx<MidiFileObject> MidiFiles { get; set; } = new ObservableCollectionEx<MidiFileObject>();
         public ObservableCollectionEx<string> TrackNames { get; set; } = new ObservableCollectionEx<string>();
-
         public ObservableCollectionEx<uint> FFProcessList { get; set; } = new ObservableCollectionEx<uint>();
         public ObservableCollectionEx<InputDevice> MidiDeviceList { get; set; } = new ObservableCollectionEx<InputDevice>();
         public State state { get; set; } = State.state;
         public ConfigObject config { get; set; } = Config.config;
         private MidiFileObject activeMidi;
         private Network network;
-        private System.Timers.Timer timer;
-        private TimeSpan TimeWhenPlay { get; set; } = TimeSpan.Zero;
+        private System.Timers.Timer playTimer;
+        private System.Timers.Timer captureTimer;
+        private DateTime TimeWhenPlay { get; set; } = DateTime.MinValue;
         private TimeSpan SystemTimeOffset { get; set; } = TimeSpan.Zero;
+        private TimeSpan NetTimeOffset { get; set; } = TimeSpan.Zero;
 
         public MainWindow()
         {
             InitializeComponent();
-            this.Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Alpha";
+            Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Alpha";
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -84,59 +83,65 @@ namespace Orchestrion
             //state event
             state.PropertyChanged += (object sender, PropertyChangedEventArgs e) =>
             {
-                if (e.PropertyName == nameof(state.IsCaptureFlag))
+                Dispatcher.Invoke(() =>
                 {
-                    if (state.IsCaptureFlag)
+                    if (e.PropertyName == nameof(state.ReadyFlag))
                     {
-                        network?.Start();
-                        captureBtn.Background = System.Windows.Media.Brushes.Pink;
-                        captureBtn.Content = "停止同步";
-
-                        try
+                        if (state.ReadyFlag)
                         {
-                            using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
-                                SystemTimeOffset = ntp.GetCorrectionOffset();
+                            network?.Start();
+                            readyBtn.Background = System.Windows.Media.Brushes.Pink;
+                            readyBtn.Content = "取消准备";
+
+                            try
+                            {
+                                using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
+                                    SystemTimeOffset = ntp.GetCorrectionOffset();
+                            }
+                            catch (Exception ex)
+                            {
+                                // timeout or bad SNTP reply
+                                SystemTimeOffset = TimeSpan.Zero;
+                                MessageBox.Show($"更新系统时间失败!\n{ex.Message}");
+                            }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            // timeout or bad SNTP reply
-                            SystemTimeOffset = TimeSpan.Zero;
-                            MessageBox.Show($"更新系统时间失败!\n{ex.Message}");
+                            network?.Stop();
+                            readyBtn.Background = System.Windows.Media.Brushes.AliceBlue;
+                            readyBtn.Content = "准备好了";
                         }
                     }
-                    else
-                    {
-                        network?.Stop();
-                        captureBtn.Background = System.Windows.Media.Brushes.AliceBlue;
-                        captureBtn.Content = "开始同步";
-                    }
-                }
 
-                if (e.PropertyName == nameof(state.ReadyFlag))
-                {
-                    if (state.ReadyFlag)
+                    if (e.PropertyName == nameof(state.PlayingFlag))
                     {
-                        readyBtn.Background = System.Windows.Media.Brushes.Orange;
-                        readyBtn.Content = "取消准备";
-                    }
-                    else
-                    {
-                        readyBtn.Background = System.Windows.Media.Brushes.AliceBlue;
-                        readyBtn.Content = "定时演奏";
-                    }
-                }
+                        if (state.PlayingFlag)
+                        {
+                            playBtn.Background = System.Windows.Media.Brushes.Orange;
+                            playBtn.Content = "停止演奏";
+                        }
+                        else
+                        {
+                            TimeWhenPlay = DateTime.MinValue;
 
-                if(e.PropertyName == nameof(state.MidiDeviceConnected))
-                {
-                    if (state.MidiDeviceConnected)
-                    {
-                        deviceConnectBtn.Content = "断开连接";
+                            //UI
+                            playBtn.Background = System.Windows.Media.Brushes.AliceBlue;
+                            playBtn.Content = "开始演奏";
+                        }
                     }
-                    else
+
+                    if (e.PropertyName == nameof(state.MidiDeviceConnected))
                     {
-                        deviceConnectBtn.Content = "开始连接";
+                        if (state.MidiDeviceConnected)
+                        {
+                            deviceConnectBtn.Content = "断开连接";
+                        }
+                        else
+                        {
+                            deviceConnectBtn.Content = "开始连接";
+                        }
                     }
-                }
+                });
             };
         }
 
@@ -144,7 +149,19 @@ namespace Orchestrion
         {
             var actions = new Dictionary<string, Action>
             {
-                {"StartPlay",()=>StartPlay(1000) },
+                {"StartPlay",()=>{
+                    if (Utils.Utils.IsGameActived())
+                    {
+                        if(TimeWhenPlay == DateTime.MinValue)
+                        {
+                            StartPlay(1000);
+                        }
+                        else
+                        {
+                            StartPlay();
+                        }
+                    }
+                } },
                 {"StopPlay",StopPlay }
             };
             try
@@ -161,25 +178,40 @@ namespace Orchestrion
             }
         }
 
-        void StartPlay(double time)
+        void StartPlay(int time)
         {
+            TimeWhenPlay = DateTime.Now.AddMilliseconds(time);
+            StartPlay();
+        }
+        void StartPlay()
+        {
+            if (state.PlayingFlag) return;
+
             try
             {
                 if ((MidiFileObject)midiListView.SelectedValue == null) throw new Exception("没有MIDI文件!");
-                if (state.PlayingFlag) return;
-                if(time > 0)
+                TimeSpan time = (TimeWhenPlay - DateTime.Now) + SystemTimeOffset + NetTimeOffset;
+                if (time > TimeSpan.Zero)
                 {
-                    timer = new System.Timers.Timer
+                    double timeMs = time.TotalMilliseconds;
+                    playTimer = new System.Timers.Timer
                     {
-                        Interval = time,
+                        Interval = timeMs,
                         AutoReset = false
                     };
-                    timer.Elapsed += Timer_Elapsed;
+                    playTimer.Elapsed += Timer_Elapsed;
 
-                    timer.Start();
+                    playTimer.Start();
                     state.PlayingFlag = true;
-                    activeMidi.GetPlayback();
-                    Logger.Info($"timer start,Interval:{time}ms");
+                    activeMidi?.GetPlayback();
+                    Logger.Info($"timer start,Interval:{timeMs}ms");
+                }
+                else
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        activeMidi?.StartPlayback(time);
+                    });
                 }
                 
             }
@@ -188,21 +220,20 @@ namespace Orchestrion
                 Logger.Error(e.Message);
                 
             }
-
         }
-        private void StopPlay()
-        {
-            timer?.Dispose();
-            activeMidi?.StopPlayback();
-            state.PlayingFlag = false;
-        }
-
         private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Dispatcher.Invoke(() =>
             {
                 activeMidi?.StartPlayback();
             });
+        }
+
+        public void StopPlay()
+        {
+            playTimer?.Dispose();
+            activeMidi?.StopPlayback();
+            state.PlayingFlag = false;
         }
 
         private void importMidiBtn_Click(object sender, RoutedEventArgs e)
@@ -281,15 +312,6 @@ namespace Orchestrion
             }
         }
 
-        private void captureBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if(network == null)
-            {
-                Logger.Error("没有FFXIV进程!");
-                return;
-            }
-            state.IsCaptureFlag = !state.IsCaptureFlag;
-        }
 
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
         {
@@ -321,19 +343,17 @@ namespace Orchestrion
                     {
                         case 0:
                             {
-                                Logger.Debug("net stop");
                                 StopPlay();
+                                Logger.Debug("net stop");
                                 break;
                             }
                         case 1:
                             {
-                                Logger.Debug("net start");
                                 DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
-                                DateTime dt = startTime.AddSeconds(timestamp + interval);
-
-                                var msTime = (dt - (DateTime.Now + SystemTimeOffset)).TotalMilliseconds;
-                                StartPlay(msTime);
-                                Logger.Debug($"{msTime}ms");
+                                TimeWhenPlay = startTime.AddSeconds(timestamp + interval);
+                                //var msTime = (dt - (DateTime.Now + SystemTimeOffset)).TotalMilliseconds;
+                                if(state.ReadyFlag) StartPlay();
+                                Logger.Debug("net start");
                                 break;
                             }
                     }
@@ -344,7 +364,12 @@ namespace Orchestrion
 
         private void readyBtn_Click(object sender, RoutedEventArgs e)
         {
-            StartPlay(1000);
+            state.ReadyFlag = !state.ReadyFlag;
+        }
+
+        private void playBtn_Click(object sender, RoutedEventArgs e)
+        {
+
         }
 
         private void settingBtn_Click(object sender, RoutedEventArgs e)
@@ -424,5 +449,6 @@ namespace Orchestrion
         {
             Process.GetCurrentProcess().Kill();
         }
+
     }
 }
