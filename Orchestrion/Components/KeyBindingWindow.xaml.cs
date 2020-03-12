@@ -70,7 +70,6 @@ namespace Orchestrion.Components
             foreach (var item in Utils.Utils.FindVisualChildren<TextBox>(this))
             {
                 var tag = (int)(item.Tag);
-                Console.WriteLine(tag);
                 if (Keymap.ContainsKey(tag))
                 {
                     item.Text = GetKeyChar(Keymap[tag]).ToString();

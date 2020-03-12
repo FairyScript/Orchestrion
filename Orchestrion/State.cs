@@ -14,8 +14,11 @@ namespace Orchestrion
         }
 
         private State() { }
-
         public static readonly State state = new State();
+
+        public DateTime TimeWhenPlay { get; set; } = DateTime.MinValue;
+        public TimeSpan SystemTimeOffset { get; set; } = TimeSpan.Zero;
+        public TimeSpan NetTimeOffset { get; set; } = TimeSpan.Zero;
 
         private bool _playingFlag;
         public bool PlayingFlag

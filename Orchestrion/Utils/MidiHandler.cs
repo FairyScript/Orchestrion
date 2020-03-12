@@ -20,6 +20,7 @@ namespace Orchestrion.Utils
         public List<TrackChunk> Tracks { get; private set; }
         public List<string> TrackNames { get; private set; }
         public int SelectedIndex { get; set; } = 0;
+
         public MidiFileObject(string path)
         {
             Path = path;
@@ -55,17 +56,14 @@ namespace Orchestrion.Utils
 
         public void StartPlayback()
         {
-                KeyController.Reset();
-                playback?.Start();
-                Logger.Info($"start play");
+            KeyController.Reset();
+            playback?.Start();
+            Logger.Info($"start play");
         }
         public void StartPlayback(TimeSpan time)
         {
-                KeyController.Reset();
-                playback?.MoveToTime(new MetricTimeSpan(time.Duration()));
-                playback?.Start();
-            State.state.PlayingFlag = true;
-            Logger.Info($"start play");
+            playback?.MoveToTime(new MetricTimeSpan(time.Duration()));
+            StartPlayback();
         }
 
         public void StopPlayback()
@@ -73,8 +71,12 @@ namespace Orchestrion.Utils
             playback?.Stop();
             outputDevice?.Dispose();
             KeyController.Reset();
-            State.state.PlayingFlag = false;
             Logger.Info($"stop play");
+        }
+        public void StopPlayback(Action action)
+        {
+            StopPlayback();
+            action.Invoke();
         }
 
         public void GetPlayback()
@@ -103,7 +105,12 @@ namespace Orchestrion.Utils
                 pb = new Playback(Tracks.ElementAt(index).Events, tempoMap);
                 pb.EventPlayed += EventPlayed;
             }
-            pb.Finished += (_, e) => StopPlayback();
+            pb.Finished += (_, e) =>
+            {
+                StopPlayback();
+                State.state.PlayingFlag = false;
+                State.state.TimeWhenPlay = DateTime.MinValue;
+            };
             playback = pb;
         }
 

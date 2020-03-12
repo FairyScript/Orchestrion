@@ -31,10 +31,15 @@ namespace Orchestrion.Utils
 
         internal static void Reset()
         {
-            for (int i = 48; i <= 84; i++)
+            foreach (var item in Config.config.KeyMap.Values)
             {
-                keybd_event((Keys)i, 0, 2, 0);
+                keybd_event((Keys)item, 0, 2, 0);
             }
+            //for (int i = 48; i <= 84; i++)
+            //{
+            //    Keys keycode = (Keys)Config.config.KeyMap[i];
+            //    keybd_event(keycode, 0, 2, 0);
+            //}
         }
     }
 }

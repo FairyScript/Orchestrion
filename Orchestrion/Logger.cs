@@ -11,8 +11,10 @@ namespace Orchestrion
 
         public static void Debug(string text)
         {
+#if DEBUG
             ConsoleOutput(text, "Debug");
             OnDebug?.Invoke(text);
+#endif
         }
         public static void Info(string text)
         {

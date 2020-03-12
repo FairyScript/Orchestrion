@@ -4,7 +4,7 @@ using Orchestrion.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows.Forms;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Orchestrion
@@ -16,7 +16,7 @@ namespace Orchestrion
     {
 
 
-        public static readonly string configPath = Path.GetDirectoryName(Application.UserAppDataPath) + "\\config.json";
+        public static readonly string configPath = Path.GetDirectoryName(System.Windows.Forms.Application.UserAppDataPath) + "\\config.json";
 
         private static ConfigObject _config;
         public static ConfigObject config
@@ -40,19 +40,20 @@ namespace Orchestrion
             try
             {
                 string text = File.ReadAllText(configPath);
-                ConfigObject config = JsonConvert.DeserializeObject<ConfigObject>(text);
-                if(config.GameVersion < ConfigObject.version)
+                var config = JsonConvert.DeserializeObject<ConfigObject>(text);
+                if (config.ConfigVersion < ConfigObject.version)
                 {
-                    var defaultConfig = ConfigObject.GetDefaultConfig();
-                    config.OpCode = defaultConfig.OpCode;
-                    config.GameVersion = defaultConfig.GameVersion;
-                    Save();
+                    if (MessageBox.Show("检测到配置版本更新,是否要重置设置?", "警告",MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        config = ConfigObject.GetDefaultConfig();
+                        config.ConfigVersion = ConfigObject.version;
+                        Save();
+                    }
                 }
                 return config;
             }
             catch (Exception e)
             {
-                TopmostMessageBox.Show("配置文件已经初始化!");
                 Logger.Warning(e.Message);
                 config = ConfigObject.GetDefaultConfig();
                 Save();
@@ -75,8 +76,8 @@ namespace Orchestrion
             EnsembleReceive
         }
 
-        public const double version = 5.11;
-        public double GameVersion { get; set; } = version;
+        public const int version = 3;
+        public int ConfigVersion { get; set; }
         /* ------- */
         public bool IsBeta { get; set; }
         public string NtpServer { get; set; }
@@ -93,53 +94,53 @@ namespace Orchestrion
                 NtpServer = "ntp.aliyun.com",
                 KeyMap = new Dictionary<int, int>
                 {
-                    {48, 90},
-                    {49, 88},
-                    {50, 67},
-                    {51, 86},
-                    {52, 66},
-                    {53, 78},
-                    {54, 77},
-                    {55, 188},
-                    {56, 190},
-                    {57, 191},
-                    {58, 219},
-                    {59, 221},
-                    {60, 81},
-                    {61, 50},
-                    {62, 87},
-                    {63, 51},
-                    {64, 69},
-                    {65, 82},
-                    {66, 53},
-                    {67, 84},
-                    {68, 54},
-                    {69, 89},
-                    {70, 55},
-                    {71, 85},
-                    {72, 65},
-                    {73, 83},
-                    {74, 68},
-                    {75, 70},
-                    {76, 71},
-                    {77, 72},
-                    {78, 74},
-                    {79, 75},
-                    {80, 76},
-                    {81, 186},
-                    {82, 222},
-                    {83, 189},
-                    {84, 187}
+                    { 48, 90 },
+                    { 49, 88 },
+                    { 50, 67 },
+                    { 51, 86 },
+                    { 52, 66 },
+                    { 53, 78 },
+                    { 54, 77 },
+                    { 55, 188 },
+                    { 56, 190 },
+                    { 57, 191 },
+                    { 58, 219 },
+                    { 59, 221 },
+                    { 60, 81 },
+                    { 61, 50 },
+                    { 62, 87 },
+                    { 63, 51 },
+                    { 64, 69 },
+                    { 65, 82 },
+                    { 66, 53 },
+                    { 67, 84 },
+                    { 68, 54 },
+                    { 69, 89 },
+                    { 70, 55 },
+                    { 71, 85 },
+                    { 72, 65 },
+                    { 73, 83 },
+                    { 74, 68 },
+                    { 75, 70 },
+                    { 76, 71 },
+                    { 77, 72 },
+                    { 78, 74 },
+                    { 79, 75 },
+                    { 80, 76 },
+                    { 81, 186 },
+                    { 82, 222 },
+                    { 83, 189 },
+                    { 84, 187 }
                 },
                 OpCode = new Dictionary<OpCodeEnum, uint>
                 {
-                    {OpCodeEnum.Countdown,0x01ac },
-                    {OpCodeEnum.EnsembleReceive,0x02d2 }
+                    { OpCodeEnum.Countdown, 0x01ac },
+                    { OpCodeEnum.EnsembleReceive, 0x02d2 }
                 },
                 HotkeyBindings = new Dictionary<string, KeyCombination>
                 {
                     {"StartPlay",new KeyCombination{Key = Key.F10,ModifierKeys = ModifierKeys.Control } },
-                    {"StopPlay",new KeyCombination{Key = Key.F11,ModifierKeys = ModifierKeys.Control } }
+                    {"StopPlay",new KeyCombination{Key = Key.F11,ModifierKeys = ModifierKeys.Control } },
                 }
             };
         }
