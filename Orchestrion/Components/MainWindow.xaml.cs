@@ -1,7 +1,4 @@
-﻿using GuerrillaNtp;
-using Melanchall.DryWetMidi.Core;
-using Orchestrion.Components;
-using Orchestrion.Utils;
+﻿
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -10,11 +7,18 @@ using System.Net;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Windows.Data;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
+using GuerrillaNtp;
+using Melanchall.DryWetMidi.Core;
 using InputDevice = Melanchall.DryWetMidi.Devices.InputDevice;
+using Orchestrion.Components;
+using Orchestrion.Utils;
+using System.Linq;
+
 namespace Orchestrion
 {
     /// <summary>
@@ -42,7 +46,7 @@ namespace Orchestrion
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Hotkey.Initial(new WindowInteropHelper(this).Handle);
+            Hotkey.Initial(new WindowInteropHelper(this).Handle);//初始化快捷键窗口句柄
             InitializeHotKey();
             InitializeEvent();
             InitializeDevice();
@@ -50,12 +54,12 @@ namespace Orchestrion
         }
 
 
-
+        /* === 初始化 === */
         private void InitializeHotKey()
         {
             var actions = new Dictionary<string, Action>
             {
-                {"StartPlay",PausePlay},
+                {"StartPlay",TogglePlay},
                 {"StopPlay",()=>StopPlay(true)},
             };
             try
@@ -86,6 +90,7 @@ namespace Orchestrion
                             readyBtn.Background = System.Windows.Media.Brushes.Pink;
                             readyBtn.Content = "取消准备";
 
+                            //同步NTP时间
                             try
                             {
                                 using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
@@ -203,6 +208,7 @@ namespace Orchestrion
             }
         }
 
+        /* === 播放控制 === */
         void StartPlay(int time)
         {
             state.TimeWhenPlay = DateTime.Now.AddMilliseconds(time);
@@ -214,7 +220,8 @@ namespace Orchestrion
 
             try
             {
-                if ((MidiFileObject)midiListView.SelectedValue == null) throw new Exception("没有MIDI文件!");
+                if (activeMidi == null) throw new Exception("没有MIDI文件!");
+                activeMidi?.GetPlayback();
                 TimeSpan time = state.TimeWhenPlay - (DateTime.Now + state.SystemTimeOffset + state.NetTimeOffset);
                 if (time > TimeSpan.Zero)
                 {
@@ -224,19 +231,11 @@ namespace Orchestrion
                         Interval = timeMs,
                         AutoReset = false
                     };
-                    playTimer.Elapsed += (sender, e) =>
-                    {
-                        //Dispatcher.Invoke(() =>
-                        //{
-                            activeMidi?.StartPlayback();
-                        //});
-                    };
+                    playTimer.Elapsed += (sender, e) => activeMidi?.StartPlayback();
 
                     playTimer.Start();
                     state.PlayingFlag = true;
-                    activeMidi?.GetPlayback();
                     Logger.Info($"timer start,Interval:{timeMs}ms");
-                    Utils.Utils.SwitchToGameWindow((Process)ffxivProcessSelect.SelectedItem);
                 }
                 else
                 {
@@ -246,7 +245,7 @@ namespace Orchestrion
                         state.PlayingFlag = true;
                     });
                 }
-                
+                Utils.Utils.SwitchToGameWindow((Process)ffxivProcessSelect.SelectedItem);
             }
             catch (Exception e)
             {
@@ -263,6 +262,29 @@ namespace Orchestrion
             if (needReset) state.TimeWhenPlay = DateTime.MinValue;
         }
 
+        /// <summary>
+        /// 播放/暂停
+        /// </summary>
+        private void TogglePlay()
+        {
+            if (state.PlayingFlag)
+            {
+                StopPlay(false);
+            }
+            else
+            {
+                if (state.TimeWhenPlay == DateTime.MinValue)
+                {
+                    StartPlay(1000);
+                }
+                else
+                {
+                    StartPlay();
+                }
+            }
+        }
+
+        /* === MIDI导入 === */
         private void importMidiBtn_Click(object sender, RoutedEventArgs e)
         {
             var midiFileDialog = new Microsoft.Win32.OpenFileDialog
@@ -277,21 +299,19 @@ namespace Orchestrion
                 {
                     MidiFiles.Add(new MidiFileObject(path));
                 }
-
             }
         }
 
         private void midiListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            TrackNames.Clear();
 
-            MidiFileObject midi = (MidiFileObject)(sender as ListView).SelectedItem;
-            if (midi == null) return;
-            activeMidi = midi;
+            activeMidi = (MidiFileObject)(sender as ListView).SelectedItem;
+            TrackNames.Clear();
+            if (activeMidi == null) return;
             try
             {
-                if (midi.Tracks == null) midi.ReadFile();
-                TrackNames.AddRange(midi.TrackNames);
+                if (activeMidi.Tracks == null) activeMidi.ReadFile();
+                TrackNames.AddRange(activeMidi.TrackNames);
             }
             catch (Exception error)
             {
@@ -326,25 +346,44 @@ namespace Orchestrion
 
         private void trackListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (midiListView.SelectedValue == null) return;//空检测
-            Logger.Debug("track select change");
+            if (activeMidi == null) return;
             var viewIndex = (sender as ListView).SelectedIndex;
             if (viewIndex == -1)
             {
-                (sender as ListView).SelectedIndex = (midiListView.SelectedItem as MidiFileObject).SelectedIndex;
+                (sender as ListView).SelectedIndex = activeMidi.SelectedIndex;
             }
-            else
+            else if(viewIndex != activeMidi.SelectedIndex)
             {
-                (midiListView.SelectedItem as MidiFileObject).SelectedIndex = (sender as ListView).SelectedIndex;
+                activeMidi.SelectedIndex = (sender as ListView).SelectedIndex;
             }
         }
 
-        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-            Regex regex = new Regex(@"[^\d-]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
+        //受限于权限问题无法工作
+        //private void midiListView_DragEnter(object sender, DragEventArgs e)
+        //{
+        //    Console.WriteLine("enter");
+        //    if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effects = DragDropEffects.Move;
+        //    else e.Effects = DragDropEffects.None;
+        //}
 
+        //private void midiListView_Drop(object sender, DragEventArgs e)
+        //{
+        //    if (e.Data.GetDataPresent(DataFormats.FileDrop))
+        //    {
+        //        // Note that you can have more than one file.
+        //        string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+        //        Regex midipattern = new Regex(@"\.midi?$");
+        //        // Assuming you have one file that you care about, pass it off to whatever
+        //        // handling code you have defined.
+        //        foreach (var filename in files)
+        //        {
+        //            if (midipattern.IsMatch(filename)) MidiFiles.Add(new MidiFileObject(filename));
+        //        }
+        //    }
+        //    e.Handled = true;
+        //}
+
+        /* === FFXIV 进程 === */
         private void ffxivProcessSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var cb = sender as ComboBox;
@@ -392,6 +431,7 @@ namespace Orchestrion
         {
             RefreshProcess();
         }
+
         private void readyBtn_Click(object sender, RoutedEventArgs e)
         {
             state.ReadyFlag = !state.ReadyFlag;
@@ -399,26 +439,7 @@ namespace Orchestrion
 
         private void playBtn_Click(object sender, RoutedEventArgs e)
         {
-            PausePlay();
-        }
-        private void PausePlay()
-        {
-            if (state.PlayingFlag)
-            {
-                StopPlay(false);
-            }
-            else
-            {
-                if (state.TimeWhenPlay == DateTime.MinValue)
-                {
-                    StartPlay(1000);
-                }
-                else
-                {
-                    StartPlay();
-                }
-
-            }
+            TogglePlay();
         }
 
         private void settingBtn_Click(object sender, RoutedEventArgs e)
@@ -431,29 +452,7 @@ namespace Orchestrion
             setting.Show();
         }
 
-        private void midiListView_DragEnter(object sender, DragEventArgs e)
-        {
-            Console.WriteLine("enter");
-            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effects = DragDropEffects.Move;
-            else e.Effects = DragDropEffects.None;
-        }
 
-        private void midiListView_Drop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                // Note that you can have more than one file.
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                Regex midipattern = new Regex(@"\.midi?$");
-                // Assuming you have one file that you care about, pass it off to whatever
-                // handling code you have defined.
-                foreach (var filename in files)
-                {
-                    if(midipattern.IsMatch(filename)) MidiFiles.Add(new MidiFileObject(filename));
-                }
-            }
-            e.Handled = true;
-        }
 
         private void deviceConnect_Click(object sender, RoutedEventArgs e)
         {
@@ -497,6 +496,29 @@ namespace Orchestrion
         private void Window_Closed(object sender, EventArgs e)
         {
             Process.GetCurrentProcess().Kill();
+        }
+
+        private void netLatency_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            var input = sender as TextBox;
+            if(e.Text == "-")
+            {
+                e.Handled = input.SelectionStart != 0;//开头
+            }
+            else
+            {
+                e.Handled = !int.TryParse(e.Text,out _);
+            }
+        }
+
+        private void netLatency_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var text = (sender as TextBox).Text;
+            int result;
+            if(int.TryParse(text,out result))
+            {
+                state.NetTimeOffset = TimeSpan.FromMilliseconds(result);
+            }
         }
     }
 }

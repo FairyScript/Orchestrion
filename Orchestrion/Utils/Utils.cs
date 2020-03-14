@@ -65,8 +65,8 @@ namespace Orchestrion.Utils
         public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
         public static void SwitchToGameWindow(Process p)
         {
-                IntPtr handle = p.MainWindowHandle;
-                SwitchToThisWindow(handle, true);
+            IntPtr handle = p.MainWindowHandle;
+            SwitchToThisWindow(handle, true);
         }
 
         [DllImport("user32.dll")]
