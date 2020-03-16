@@ -89,19 +89,7 @@ namespace Orchestrion
                         {
                             readyBtn.Background = System.Windows.Media.Brushes.Pink;
                             readyBtn.Content = "取消准备";
-
-                            //同步NTP时间
-                            try
-                            {
-                                using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
-                                    state.SystemTimeOffset = ntp.GetCorrectionOffset();
-                            }
-                            catch (Exception ex)
-                            {
-                                // timeout or bad SNTP reply
-                                state.SystemTimeOffset = TimeSpan.Zero;
-                                MessageBox.Show($"更新系统时间失败!\n{ex.Message}");
-                            }
+                            SyncTime();
                         }
                         else
                         {
@@ -185,26 +173,48 @@ namespace Orchestrion
             captureTimer = new System.Timers.Timer
             {
                 AutoReset = true,
-                Interval = 1000
+                Interval = 60000
             };
             captureTimer.Elapsed += (sender, e) => RefreshProcess();
 
             captureTimer.Start();
-            RefreshProcess();//马上执行,有的话就会停止timer
+            RefreshProcess();//马上执行一次
         }
         private void RefreshProcess()
         {
-            //Logger.Debug("find process");
-            var list = Utils.Utils.FindFFProcess();
-            if (list.Count > 0)
+            if (!state.IsCaptureFlag)
             {
-                Dispatcher.Invoke(() =>
+                var list = Utils.Utils.FindFFProcess();
+                if (list.Count > 0)
                 {
-                    FFProcessList.Clear();
-                    FFProcessList.AddRange(list);
+                    Dispatcher.Invoke(() =>
+                    {
+                        FFProcessList.Clear();
+                        FFProcessList.AddRange(list);
 
-                    captureTimer?.Stop();
-                });
+                        //captureTimer?.Stop();
+                    });
+                }
+            }
+            if (state.ReadyFlag)
+            {
+                SyncTime();
+            }
+        }
+
+        //同步NTP时间
+        void SyncTime()
+        {
+            try
+            {
+                using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
+                    state.SystemTimeOffset = ntp.GetCorrectionOffset();
+            }
+            catch (Exception ex)
+            {
+                // timeout or bad SNTP reply
+                state.SystemTimeOffset = TimeSpan.Zero;
+                MessageBox.Show($"更新系统时间失败!\n{ex.Message}");
             }
         }
 
