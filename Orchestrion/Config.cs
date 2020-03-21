@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using NLog;
 using Orchestrion.Components;
 using Orchestrion.Utils;
 using System;
@@ -14,7 +15,7 @@ namespace Orchestrion
     /// </summary>
     public class Config
     {
-
+        static Logger Logger = LogManager.GetCurrentClassLogger();
 
         public static readonly string configPath = Path.GetDirectoryName(System.Windows.Forms.Application.UserAppDataPath) + "\\config.json";
 
@@ -54,7 +55,7 @@ namespace Orchestrion
             }
             catch (Exception e)
             {
-                Logger.Warning(e.Message);
+                Logger.Warn(e.Message);
                 config = ConfigObject.GetDefaultConfig();
                 Save();
                 return config;

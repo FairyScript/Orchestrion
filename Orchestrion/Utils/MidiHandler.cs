@@ -1,6 +1,7 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +21,9 @@ namespace Orchestrion.Utils
         public List<TrackChunk> Tracks { get; private set; }
         public List<string> TrackNames { get; private set; }
         public int SelectedIndex { get; set; } = 0;
+
+        //NLog
+        static Logger Logger = LogManager.GetCurrentClassLogger();
 
         public MidiFileObject(string path)
         {

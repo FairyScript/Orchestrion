@@ -1,6 +1,7 @@
 ﻿using Machina;
 using Machina.FFXIV;
 using NetFwTypeLib;
+using NLog;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -14,6 +15,10 @@ namespace Orchestrion.Utils
         public delegate void NetPlayEvent(int mode, int interval, int timestamp);
         public NetPlayEvent OnReceived;
         public NetPlayEvent OnSent;
+
+        //NLog
+        static Logger Logger = LogManager.GetCurrentClassLogger();
+
         internal class ParseResult
         {
             public FFXIVMessageHeader header;

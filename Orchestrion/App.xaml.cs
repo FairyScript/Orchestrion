@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
@@ -20,6 +21,8 @@ namespace Orchestrion
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             //Task线程内未捕获异常处理事件
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+            //初始化Logger
+            InitializeLogger();
         }
 
         //UI线程未捕获异常处理事件（UI主线程）
@@ -71,6 +74,27 @@ namespace Orchestrion
                 errorMsg += String.Format("{0}\n{1}", ex.Message, ex.StackTrace);
 
             }
+        }
+
+        private void InitializeLogger()
+        {
+            var config = new NLog.Config.LoggingConfiguration();
+
+            // Targets where to log to: File and Console
+            var logfile = new NLog.Targets.FileTarget("logfile") {
+                FileName = System.Windows.Forms.Application.UserAppDataPath + @"\debug.log",
+                Layout = @"[${date:format=MM-dd HH\:mm\:ss.fff}] - ${level:uppercase=true}|${logger}|${message}"
+            };
+            var logconsole = new NLog.Targets.ConsoleTarget("logconsole") {
+                Layout = @"[${time}] - ${level:uppercase=true}|${logger}|${message}"
+            };
+
+            // Rules for mapping loggers to targets            
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, logconsole);
+            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+
+            // Apply config           
+            LogManager.Configuration = config;
         }
     }
 }

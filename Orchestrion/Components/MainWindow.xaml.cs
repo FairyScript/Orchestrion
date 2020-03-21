@@ -18,6 +18,7 @@ using InputDevice = Melanchall.DryWetMidi.Devices.InputDevice;
 using Orchestrion.Components;
 using Orchestrion.Utils;
 using System.Linq;
+using NLog;
 
 namespace Orchestrion
 {
@@ -32,6 +33,7 @@ namespace Orchestrion
         public ObservableCollectionEx<InputDevice> MidiDeviceList { get; set; } = new ObservableCollectionEx<InputDevice>();
         public State state { get; set; } = State.state;
         public ConfigObject config { get; set; } = Config.config;
+        Logger Logger = LogManager.GetCurrentClassLogger();
         private MidiFileObject activeMidi;
         private Network network;
         private System.Timers.Timer playTimer;
@@ -52,6 +54,7 @@ namespace Orchestrion
             InitializeDevice();
             InitializeNetwork();
         }
+
 
 
         /* === 初始化 === */
@@ -151,13 +154,13 @@ namespace Orchestrion
                     {
                         case NoteOnEvent @event:
                             {
-                                Logger.Debug($"keyboard: {@event.NoteNumber} pressed");
+                                Logger.Trace($"keyboard: {@event.NoteNumber} pressed");
                                 KeyController.KeyboardPress(@event.NoteNumber);
                                 break;
                             }
                         case NoteOffEvent @event:
                             {
-                                Logger.Debug($"keyboard: {@event.NoteNumber} release");
+                                Logger.Trace($"keyboard: {@event.NoteNumber} release");
                                 KeyController.KeyboardRelease(@event.NoteNumber);
                                 break;
                             }
