@@ -62,7 +62,7 @@ namespace Orchestrion.Utils
         {
             KeyController.Reset();
             playback?.Start();
-            Logger.Info($"start play");
+            Logger.Info("MIDI: Start Playback");
         }
         public void StartPlayback(TimeSpan time)
         {
@@ -75,7 +75,7 @@ namespace Orchestrion.Utils
             playback?.Stop();
             outputDevice?.Dispose();
             KeyController.Reset();
-            Logger.Info($"stop play");
+            Logger.Info("MIDI: Stop Playback");
         }
         public void StopPlayback(Action action)
         {
@@ -102,6 +102,11 @@ namespace Orchestrion.Utils
                 }
                 outputDevice = OutputDevice.GetByName("Microsoft GS Wavetable Synth");
                 pb = new Playback(events, tempoMap, outputDevice);
+                Logger.Debug($"Type: {outputDevice.DeviceType}");
+                foreach (var item in outputDevice.Channels)
+                {
+                    Logger.Debug($"Channel: {item}");
+                }
             }
             else
             {
@@ -114,6 +119,7 @@ namespace Orchestrion.Utils
                 StopPlayback();
                 State.state.PlayingFlag = false;
                 State.state.TimeWhenPlay = DateTime.MinValue;
+                Logger.Info("MIDI: Finished");
             };
             playback = pb;
         }

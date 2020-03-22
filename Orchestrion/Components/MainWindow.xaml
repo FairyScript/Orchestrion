@@ -30,7 +30,7 @@
         <Label x:Name="label_Trackselect" Content="轨道选择" HorizontalAlignment="Left" Margin="212,22,0,0" VerticalAlignment="Top" Height="25" Width="58"/>
         <Button x:Name="importMidiBtn" Content="导入..." HorizontalAlignment="Left" Margin="116,26,0,0" VerticalAlignment="Top" Width="74" Click="importMidiBtn_Click" Height="19"/>
         <Label x:Name="ffxivThreadLabel" Content="FFXIV进程" HorizontalAlignment="Left" Margin="27,48,0,0" VerticalAlignment="Top" Grid.Column="1" Height="25" Width="66"/>
-        <ComboBox x:Name="ffxivProcessSelect" HorizontalAlignment="Left" Margin="98,48,0,0" VerticalAlignment="Top" Width="120" Height="25" ItemsSource="{Binding FFProcessList, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectedIndex="0" SelectionChanged="ffxivProcessSelect_SelectionChanged" Grid.Column="1">
+        <ComboBox x:Name="ffxivProcessSelect" HorizontalAlignment="Left" Margin="98,48,0,0" VerticalAlignment="Top" Width="120" Height="25" ItemsSource="{Binding FFProcessList, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="ffxivProcessSelect_SelectionChanged" Grid.Column="1" SourceUpdated="ffxivProcessSelect_SourceUpdated" SelectedIndex="0">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Id}"/>
@@ -41,7 +41,7 @@
         <Label x:Name="label_latency" Content="网络延迟" HorizontalAlignment="Left" Margin="27,88,0,0" VerticalAlignment="Top" Width="66" Grid.Column="1" Height="25"/>
         <TextBox x:Name="netLatency" HorizontalAlignment="Left" Height="24" Margin="98,88,0,0" VerticalAlignment="Top" Width="71" MaxLength="5" IsEnabled="{Binding state.AutoPing, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" Grid.Column="1" InputMethod.IsInputMethodEnabled="False" Text="0" PreviewTextInput="netLatency_PreviewTextInput" TextChanged="netLatency_TextChanged"/>
         <CheckBox x:Name="autoPing" Content="自动" HorizontalAlignment="Left" Margin="174,94,0,0" VerticalAlignment="Top" IsChecked="{Binding state.AutoPing, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" RenderTransformOrigin="0.42,1.8" Grid.Column="1" Height="15" Width="44" IsEnabled="False"/>
-        <CheckBox x:Name="checkBox" Content="伴奏模式" HorizontalAlignment="Left" Margin="27,134,0,0" VerticalAlignment="Top" IsChecked="{Binding state.IsAccompanyMode, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" IsEnabled="False" Grid.Column="1" Height="15" Width="68"/>
+        <CheckBox x:Name="checkBox" Content="伴奏模式" HorizontalAlignment="Left" Margin="27,134,0,0" VerticalAlignment="Top" IsChecked="{Binding state.IsAccompanyMode, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" Grid.Column="1" Height="15" Width="68"/>
         <Button x:Name="readyBtn" Content="准备好了" HorizontalAlignment="Left" Margin="27,194,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="readyBtn_Click" Grid.Column="1"/>
         <Button x:Name="playBtn" Content="开始演奏" HorizontalAlignment="Left" Margin="129,194,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="playBtn_Click" Grid.Column="1"/>
         <Button x:Name="settingBtn" Content="设置" HorizontalAlignment="Left" Margin="249,337,0,0" VerticalAlignment="Top" Width="80" Height="40" Click="settingBtn_Click" Grid.Column="1"/>

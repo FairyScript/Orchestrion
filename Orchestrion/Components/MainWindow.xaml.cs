@@ -19,6 +19,7 @@ using Orchestrion.Components;
 using Orchestrion.Utils;
 using System.Linq;
 using NLog;
+using System.Threading.Tasks;
 
 namespace Orchestrion
 {
@@ -92,7 +93,7 @@ namespace Orchestrion
                         {
                             readyBtn.Background = System.Windows.Media.Brushes.Pink;
                             readyBtn.Content = "取消准备";
-                            SyncTime();
+                            Task.Run(()=> SyncTime());
                         }
                         else
                         {
@@ -113,20 +114,6 @@ namespace Orchestrion
                             //UI
                             playBtn.Background = System.Windows.Media.Brushes.AliceBlue;
                             playBtn.Content = "开始演奏";
-                        }
-                    }
-                    if (e.PropertyName == nameof(state.IsCaptureFlag))
-                    {
-                        if (state.IsCaptureFlag)
-                        {
-                            captureStatusLabel.Content = "状态:已同步";
-                            captureStatusLabel.Foreground = System.Windows.Media.Brushes.BlueViolet;
-                        }
-                        else
-                        {
-                            captureStatusLabel.Content = "状态:未同步";
-                            captureStatusLabel.Foreground = System.Windows.Media.Brushes.Red;
-
                         }
                     }
                     if (e.PropertyName == nameof(state.MidiDeviceConnected))
@@ -176,18 +163,18 @@ namespace Orchestrion
             captureTimer = new System.Timers.Timer
             {
                 AutoReset = true,
-                Interval = 60000
+                Interval = 10000
             };
-            captureTimer.Elapsed += (sender, e) => RefreshProcess();
+            captureTimer.Elapsed += (sender, e) => SyncTask();
 
             captureTimer.Start();
-            RefreshProcess();//马上执行一次
+            SyncTask();//马上执行一次
         }
-        private void RefreshProcess()
+        private void SyncTask()
         {
-            if (!state.IsCaptureFlag)
+            var list = Utils.Utils.FindFFProcess();
+            if (network == null || !network.IsListening)
             {
-                var list = Utils.Utils.FindFFProcess();
                 if (list.Count > 0)
                 {
                     Dispatcher.Invoke(() =>
@@ -199,25 +186,51 @@ namespace Orchestrion
                     });
                 }
             }
+            else
+            {
+                try
+                {
+                    var gameProcess = Process.GetProcessById((int)network.ProcessID);
+                    gameProcess.Dispose();
+                }
+                catch (ArgumentException e)
+                {
+                    Logger.Warn(e.Message);
+                    network.Stop();
+                    Dispatcher.Invoke(() => FFProcessList.Clear());
+                }
+            }
+
             if (state.ReadyFlag)
             {
                 SyncTime();
             }
         }
+        //
+         void RefreshProcess()
+        {
+
+        }
 
         //同步NTP时间
         void SyncTime()
         {
+      
             try
             {
                 using (var ntp = new NtpClient(Dns.GetHostAddresses(config.NtpServer)[0]))
-                    state.SystemTimeOffset = ntp.GetCorrectionOffset();
+                {
+                    var offset = ntp.GetCorrectionOffset();
+                    state.SystemTimeOffset = offset;
+                    Logger.Info($"update ntp offset: {offset}");
+                }
             }
             catch (Exception ex)
             {
                 // timeout or bad SNTP reply
-                state.SystemTimeOffset = TimeSpan.Zero;
-                MessageBox.Show($"更新系统时间失败!\n{ex.Message}");
+                //state.SystemTimeOffset = TimeSpan.Zero;
+                MessageBox.Show($"更新时间失败!\n{ex.Message}");
+                Logger.Warn($"更新时间失败! {ex.Message}");
             }
         }
 
@@ -397,57 +410,101 @@ namespace Orchestrion
         //}
 
         /* === FFXIV 进程 === */
+        private void ffxivProcessSelect_SourceUpdated(object sender, DataTransferEventArgs e)
+        {
+            Logger.Trace("ffxivProcessSelect_SourceUpdated");
+            var cb = sender as ComboBox;
+            if (FFProcessList.Count > 0 && cb.SelectedIndex == -1) cb.SelectedIndex = 0;
+        }
         private void ffxivProcessSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var cb = sender as ComboBox;
-            if (network != null)
+            Logger.Trace($"ffxivProcessSelect_SelectionChanged: {cb.SelectedIndex}");
+            if (cb.SelectedItem != null)
+            {
+                var pid = (uint)(cb.SelectedItem as Process).Id;
+                ListenProcess(pid);
+            }
+            else
+            {
+                network?.Stop();
+            }
+        }
+
+        private void ListenProcess(uint pid)
+        {
+            if(network == null)
+            {
+                network = new Network(pid);
+
+                network.OnReceived += (mode, interval, timestamp) =>
+                {
+                    Dispatcher.Invoke(() => {
+                        switch (mode)
+                        {
+                            case 0:
+                                {
+                                    StopPlay(true);
+                                    Logger.Debug("net stop");
+                                    break;
+                                }
+                            case 1:
+                                {
+                                    DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
+                                    state.TimeWhenPlay = startTime.AddSeconds(timestamp + interval);
+                                    //var msTime = (dt - (DateTime.Now + SystemTimeOffset)).TotalMilliseconds;
+                                    if (state.ReadyFlag) StartPlay();
+                                    Logger.Info($"net: TimeWhenPlay[{state.TimeWhenPlay}]");
+                                    break;
+                                }
+                        }
+                    });
+                };
+
+                network.OnStatusChanged += status =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+
+                        if (status)
+                        {
+                            captureStatusLabel.Content = "状态:已同步";
+                            captureStatusLabel.Foreground = System.Windows.Media.Brushes.BlueViolet;
+                        }
+                        else
+                        {
+                            captureStatusLabel.Content = "状态:未同步";
+                            captureStatusLabel.Foreground = System.Windows.Media.Brushes.Red;
+
+                        }
+                    });
+                };
+            }
+            else if(pid != network.ProcessID)
             {
                 network.Stop();
-                state.IsCaptureFlag = false;
+                network.ProcessID = pid;
             }
-            if (FFProcessList.Count == 0) return;
-            if (cb.SelectedIndex == -1)
-            {
-                cb.SelectedIndex = 0;
-                //return;
-            }
-
-            network = new Network((uint)(cb.SelectedItem as Process).Id);
-            network.OnReceived += (mode, interval,timestamp) =>
-            {
-                Dispatcher.Invoke(() => {
-                    switch (mode)
-                    {
-                        case 0:
-                            {
-                                StopPlay(true);
-                                Logger.Debug("net stop");
-                                break;
-                            }
-                        case 1:
-                            {
-                                DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
-                                state.TimeWhenPlay = startTime.AddSeconds(timestamp + interval);
-                                //var msTime = (dt - (DateTime.Now + SystemTimeOffset)).TotalMilliseconds;
-                                if(state.ReadyFlag) StartPlay();
-                                Logger.Debug("net: Time update");
-                                break;
-                            }
-                    }
-                });
-            };
-
+            
             network.Start();
-            state.IsCaptureFlag = true;
         }
         private void refreshProcessBtn_Click(object sender, RoutedEventArgs e)
         {
-            RefreshProcess();
+            SyncTask();
         }
 
         private void readyBtn_Click(object sender, RoutedEventArgs e)
         {
-            state.ReadyFlag = !state.ReadyFlag;
+            if(network!=null && network.IsListening)
+            {
+                state.ReadyFlag = !state.ReadyFlag;
+
+            }
+            else
+            {
+                Logger.Warn("没有检测到FFXIV进程");
+                TopmostMessageBox.Show("没有检测到FFXIV进程!请检查同步情况");
+            }
         }
 
         private void playBtn_Click(object sender, RoutedEventArgs e)
@@ -533,5 +590,7 @@ namespace Orchestrion
                 state.NetTimeOffset = TimeSpan.FromMilliseconds(result);
             }
         }
+
+
     }
 }

@@ -83,15 +83,17 @@ namespace Orchestrion
             // Targets where to log to: File and Console
             var logfile = new NLog.Targets.FileTarget("logfile") {
                 FileName = System.Windows.Forms.Application.UserAppDataPath + @"\debug.log",
-                Layout = @"[${date:format=MM-dd HH\:mm\:ss.fff}] - ${level:uppercase=true}|${logger}|${message}"
+                Layout = @"[${date:format=MM-dd HH\:mm\:ss.fff}] - ${level:uppercase=true}|${logger}|${message}",
+                Encoding = System.Text.Encoding.UTF8
             };
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole") {
-                Layout = @"[${time}] - ${level:uppercase=true}|${logger}|${message}"
+                Layout = @"[${time}] - ${level:uppercase=true}|${logger}|${message}",
+                Encoding = System.Text.Encoding.UTF8
             };
 
             // Rules for mapping loggers to targets            
             config.AddRule(LogLevel.Trace, LogLevel.Fatal, logconsole);
-            config.AddRule(LogLevel.Debug, LogLevel.Fatal, logfile);
+            config.AddRule(LogLevel.Info, LogLevel.Fatal, logfile);
 
             // Apply config           
             LogManager.Configuration = config;

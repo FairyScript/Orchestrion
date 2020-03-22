@@ -9,13 +9,15 @@ using System.Text;
 using System.Windows;
 namespace Orchestrion.Utils
 {
-    public class Network
+
+    public class Network : FFXIVNetworkMonitor
     {
-        private FFXIVNetworkMonitor monitor;
+        //private FFXIVNetworkMonitor monitor;
+        public bool IsListening { get; set; } = false;
         public delegate void NetPlayEvent(int mode, int interval, int timestamp);
         public NetPlayEvent OnReceived;
         public NetPlayEvent OnSent;
-
+        public event Action<bool> OnStatusChanged;
         //NLog
         static Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -25,29 +27,38 @@ namespace Orchestrion.Utils
             public byte[] data;
         }
         public Network(uint processId)
+            :base()
         {
-            monitor = new FFXIVNetworkMonitor();
-            monitor.MonitorType = TCPNetworkMonitor.NetworkMonitorType.RawSocket;
-            monitor.MessageReceived = MessageReceived;
+            MonitorType = TCPNetworkMonitor.NetworkMonitorType.RawSocket;
+            MessageReceived = MessageReceivedFunc;
             //monitor.MessageSent = MessageSent;
-            monitor.ProcessID = processId;
+            ProcessID = processId;
         }
-        public void Start() => monitor.Start();
-        public void Stop() => monitor.Stop();
+        public new void Start()
+        {
+            base.Start();
+            IsListening = true;
+            OnStatusChanged?.Invoke(IsListening);
+        }
+        public new void Stop()
+        {
+            base.Stop();
+            IsListening = false;
+            OnStatusChanged?.Invoke(IsListening);
+        }
 
-        private void MessageSent(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
+        private void MessageSentFunc(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
         {
             //TODO: Ping Analysis
         }
 
-        private void MessageReceived(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
+        private void MessageReceivedFunc(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
         {
             var res = Parse(message);
 
-
             if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.Countdown])//CountDown
             {
-                Logger.Info("CountDown");
+                Logger.Info("CountDown Receive");
                 var countDownTime = res.data[36];
                 var nameBytes = new byte[18];
                 var timeStampBytes = new byte[4];
@@ -59,7 +70,7 @@ namespace Orchestrion.Utils
 
             if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.EnsembleReceive]) //ensemble
             {
-                Logger.Info("ensemble ready");
+                Logger.Info("Ensemble_ready Receive");
                 var timeStampBytes = new byte[4];
                 Array.Copy(res.data, 24, timeStampBytes, 0, 4);
 
