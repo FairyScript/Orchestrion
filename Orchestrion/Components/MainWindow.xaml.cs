@@ -129,6 +129,7 @@ namespace Orchestrion
                     }
                 });
             };
+
         }
 
         private void InitializeDevice()
@@ -163,7 +164,7 @@ namespace Orchestrion
             captureTimer = new System.Timers.Timer
             {
                 AutoReset = true,
-                Interval = 10000
+                Interval = 60000
             };
             captureTimer.Elapsed += (sender, e) => SyncTask();
 
@@ -181,7 +182,7 @@ namespace Orchestrion
                     {
                         FFProcessList.Clear();
                         FFProcessList.AddRange(list);
-
+                        ffxivProcessSelect.SelectedIndex = 0;
                         //captureTimer?.Stop();
                     });
                 }
@@ -205,11 +206,6 @@ namespace Orchestrion
             {
                 SyncTime();
             }
-        }
-        //
-         void RefreshProcess()
-        {
-
         }
 
         //同步NTP时间
@@ -410,12 +406,6 @@ namespace Orchestrion
         //}
 
         /* === FFXIV 进程 === */
-        private void ffxivProcessSelect_SourceUpdated(object sender, DataTransferEventArgs e)
-        {
-            Logger.Trace("ffxivProcessSelect_SourceUpdated");
-            var cb = sender as ComboBox;
-            if (FFProcessList.Count > 0 && cb.SelectedIndex == -1) cb.SelectedIndex = 0;
-        }
         private void ffxivProcessSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var cb = sender as ComboBox;
@@ -425,7 +415,7 @@ namespace Orchestrion
                 var pid = (uint)(cb.SelectedItem as Process).Id;
                 ListenProcess(pid);
             }
-            else
+            else if(FFProcessList.Count == 0)
             {
                 network?.Stop();
             }
@@ -490,15 +480,38 @@ namespace Orchestrion
         }
         private void refreshProcessBtn_Click(object sender, RoutedEventArgs e)
         {
-            SyncTask();
-        }
+            var list = Utils.Utils.FindFFProcess();
 
+            Dispatcher.Invoke(() =>
+            {
+                FFProcessList.Clear();
+                FFProcessList.AddRange(list);
+
+                //captureTimer?.Stop();
+            });
+            //防止激情连打
+            var btn = sender as Button;
+            btn.IsEnabled = false;
+            var timer = new System.Timers.Timer
+            {
+                Interval = 1000,
+                AutoReset = false
+            };
+
+            timer.Elapsed += (s, ee) =>
+            {
+                Dispatcher.Invoke(() => btn.IsEnabled = true);
+                timer.Dispose();
+            };
+            timer.Start();
+        }
+        
         private void readyBtn_Click(object sender, RoutedEventArgs e)
         {
             if(network!=null && network.IsListening)
             {
                 state.ReadyFlag = !state.ReadyFlag;
-
+                Logger.Trace($"ReadyClick! now: {state.ReadyFlag}");
             }
             else
             {

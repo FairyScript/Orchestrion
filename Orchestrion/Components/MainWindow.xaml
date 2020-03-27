@@ -30,7 +30,7 @@
         <Label x:Name="label_Trackselect" Content="轨道选择" HorizontalAlignment="Left" Margin="212,22,0,0" VerticalAlignment="Top" Height="25" Width="58"/>
         <Button x:Name="importMidiBtn" Content="导入..." HorizontalAlignment="Left" Margin="116,26,0,0" VerticalAlignment="Top" Width="74" Click="importMidiBtn_Click" Height="19"/>
         <Label x:Name="ffxivThreadLabel" Content="FFXIV进程" HorizontalAlignment="Left" Margin="27,48,0,0" VerticalAlignment="Top" Grid.Column="1" Height="25" Width="66"/>
-        <ComboBox x:Name="ffxivProcessSelect" HorizontalAlignment="Left" Margin="98,48,0,0" VerticalAlignment="Top" Width="120" Height="25" ItemsSource="{Binding FFProcessList, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="ffxivProcessSelect_SelectionChanged" Grid.Column="1" SourceUpdated="ffxivProcessSelect_SourceUpdated" SelectedIndex="0">
+        <ComboBox x:Name="ffxivProcessSelect" HorizontalAlignment="Left" Margin="98,48,0,0" VerticalAlignment="Top" Width="120" Height="25" ItemsSource="{Binding FFProcessList, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="ffxivProcessSelect_SelectionChanged" Grid.Column="1" SelectedIndex="0">
             <ComboBox.ItemTemplate>
                 <DataTemplate>
                     <TextBlock Text="{Binding Id}"/>
