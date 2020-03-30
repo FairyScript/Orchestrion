@@ -61,19 +61,27 @@ namespace Orchestrion.Utils
             }
         }
 
+        #region system member
         [DllImport("user32.dll")]
         public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
-        public static void SwitchToGameWindow(Process p)
-        {
-            IntPtr handle = p.MainWindowHandle;
-            SwitchToThisWindow(handle, true);
-        }
 
         [DllImport("user32.dll")]
         static extern IntPtr GetForegroundWindow();
 
         [DllImport("user32.dll")]
         static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
+        #endregion
+        public static void SwitchToGameWindow(Process p)
+        {
+            IntPtr handle = p.MainWindowHandle;
+            SwitchToThisWindow(handle, true);
+        }
+
+        public static bool IsGameActived()
+        {
+            var title = GetActiveWindowTitle();
+            return title == "最终幻想XIV";
+        }
 
         public static string GetActiveWindowTitle()
         {
@@ -86,12 +94,6 @@ namespace Orchestrion.Utils
                 return Buff.ToString();
             }
             return null;
-        }
-
-        public static bool IsGameActived()
-        {
-            var title = GetActiveWindowTitle();
-            return title == "最终幻想XIV";
         }
     }
 }
