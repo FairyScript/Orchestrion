@@ -55,6 +55,7 @@ namespace Orchestrion
                 {
                     MessageBox.Show("检测到游戏版本更新!");
                     config.OpCode = dafaultConfig.OpCode;
+                    config.GameVersion = dafaultConfig.GameVersion;
                     Save();
                 }
                 return config;
