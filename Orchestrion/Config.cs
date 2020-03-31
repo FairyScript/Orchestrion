@@ -42,20 +42,27 @@ namespace Orchestrion
             {
                 string text = File.ReadAllText(configPath);
                 var config = JsonConvert.DeserializeObject<ConfigObject>(text);
-                if (config.ConfigVersion < ConfigObject.version)
+                var dafaultConfig = ConfigObject.GetDefaultConfig();
+                if (config.ConfigVersion != dafaultConfig.ConfigVersion)
                 {
                     if (MessageBox.Show("检测到配置版本更新,是否要重置设置?", "警告",MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
-                        config = ConfigObject.GetDefaultConfig();
-                        config.ConfigVersion = ConfigObject.version;
+                        config = dafaultConfig;
                         Save();
                     }
+                }
+                if (config.GameVersion != dafaultConfig.GameVersion)
+                {
+                    MessageBox.Show("检测到游戏版本更新!");
+                    config.OpCode = dafaultConfig.OpCode;
+                    Save();
                 }
                 return config;
             }
             catch (Exception e)
             {
                 Logger.Warn(e.Message);
+                MessageBox.Show("配置读取失败!已恢复到初始设置");
                 config = ConfigObject.GetDefaultConfig();
                 Save();
                 return config;
@@ -78,8 +85,8 @@ namespace Orchestrion
             Ping
         }
 
-        public const int version = 3;
-        public int ConfigVersion { get; set; }
+        public int ConfigVersion { get; set; } = 4;
+        public double GameVersion { get; set; } = 5.15;
         /* ------- */
         public bool IsBeta { get; set; }
         public string NtpServer { get; set; }
