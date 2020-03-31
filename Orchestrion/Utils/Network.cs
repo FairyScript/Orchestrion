@@ -79,11 +79,7 @@ namespace Orchestrion.Utils
 
             if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.Ping]) //Ping
             {
-                Logger.Trace("Ping Receive");
-                var timeStampBytes = new byte[4];
-                Array.Copy(res.data, 24, timeStampBytes, 0, 4);
-
-                OnReceived?.Invoke(1, 5, BitConverter.ToInt32(timeStampBytes, 0));
+                
             }
         }
         private static ParseResult Parse(byte[] data)
