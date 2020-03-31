@@ -74,7 +74,8 @@ namespace Orchestrion
         public enum OpCodeEnum
         {
             Countdown,
-            EnsembleReceive
+            EnsembleReceive,
+            Ping
         }
 
         public const int version = 3;
@@ -84,7 +85,7 @@ namespace Orchestrion
         public string NtpServer { get; set; }
         public Dictionary<int, int> KeyMap { get; set; }
         public Dictionary<string, KeyCombination> HotkeyBindings { get; set; }
-        public Dictionary<OpCodeEnum, uint> OpCode { get; set; }
+        public Dictionary<OpCodeEnum, ushort> OpCode { get; set; }
 
         ConfigObject() { }
         public static ConfigObject GetDefaultConfig()
@@ -133,10 +134,11 @@ namespace Orchestrion
                     { 83, 189 },
                     { 84, 187 }
                 },
-                OpCode = new Dictionary<OpCodeEnum, uint>
+                OpCode = new Dictionary<OpCodeEnum, ushort>
                 {
-                    { OpCodeEnum.Countdown, 0x01ac },
-                    { OpCodeEnum.EnsembleReceive, 0x02d2 }
+                    { OpCodeEnum.Countdown, 0x026e },
+                    { OpCodeEnum.EnsembleReceive, 0x02e9 },
+                    { OpCodeEnum.Ping, 0x00dd }
                 },
                 HotkeyBindings = new Dictionary<string, KeyCombination>
                 {

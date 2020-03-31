@@ -3,6 +3,7 @@ using Machina.FFXIV;
 using NetFwTypeLib;
 using NLog;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -12,7 +13,6 @@ namespace Orchestrion.Utils
 
     public class Network : FFXIVNetworkMonitor
     {
-        //private FFXIVNetworkMonitor monitor;
         public bool IsListening { get; set; } = false;
         public delegate void NetPlayEvent(int mode, int interval, int timestamp);
         public NetPlayEvent OnReceived;
@@ -21,17 +21,16 @@ namespace Orchestrion.Utils
         //NLog
         static Logger Logger = LogManager.GetCurrentClassLogger();
 
-        internal class ParseResult
-        {
-            public FFXIVMessageHeader header;
-            public byte[] data;
-        }
+        //Ping
+        public uint Ping { get; set; } = 0;
+        private Dictionary<uint, DateTime> timePairs;
+
         public Network(uint processId)
             :base()
         {
             MonitorType = TCPNetworkMonitor.NetworkMonitorType.RawSocket;
             MessageReceived = MessageReceivedFunc;
-            //monitor.MessageSent = MessageSent;
+            MessageSent = MessageSentFunc;
             ProcessID = processId;
         }
         public new void Start()
@@ -47,12 +46,13 @@ namespace Orchestrion.Utils
             OnStatusChanged?.Invoke(IsListening);
         }
 
-        private void MessageSentFunc(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
+        private void MessageSentFunc(long epoch, byte[] message, int set, ConnectionType connectionType)
         {
-            //TODO: Ping Analysis
+            //Ping Analysis
+
         }
 
-        private void MessageReceivedFunc(long epoch, byte[] message, int set, FFXIVNetworkMonitor.ConnectionType connectionType)
+        private void MessageReceivedFunc(long epoch, byte[] message, int set, ConnectionType connectionType)
         {
             var res = Parse(message);
 
@@ -76,6 +76,15 @@ namespace Orchestrion.Utils
 
                 OnReceived?.Invoke(1,5, BitConverter.ToInt32(timeStampBytes, 0));
             }
+
+            if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.Ping]) //Ping
+            {
+                Logger.Trace("Ping Receive");
+                var timeStampBytes = new byte[4];
+                Array.Copy(res.data, 24, timeStampBytes, 0, 4);
+
+                OnReceived?.Invoke(1, 5, BitConverter.ToInt32(timeStampBytes, 0));
+            }
         }
         private static ParseResult Parse(byte[] data)
         {
@@ -88,6 +97,11 @@ namespace Orchestrion.Utils
             result.data = data;
 
             return result;
+        }
+        internal class ParseResult
+        {
+            public FFXIVMessageHeader header;
+            public byte[] data;
         }
 
         public static void RegisterToFirewall()
