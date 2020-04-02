@@ -72,7 +72,7 @@ namespace Orchestrion
 
         public static void Save()
         {
-            File.WriteAllText(configPath, JsonConvert.SerializeObject(_config));
+            File.WriteAllText(configPath, JsonConvert.SerializeObject(_config, Formatting.Indented));
         }
 
     }

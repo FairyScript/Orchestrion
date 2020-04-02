@@ -153,7 +153,7 @@ namespace Orchestrion.Components
             };
             if(saveFileDialog.ShowDialog() == true)
             {
-                string text = JsonConvert.SerializeObject(Keymap);
+                string text = JsonConvert.SerializeObject(Keymap, Formatting.Indented);
                 File.WriteAllText(saveFileDialog.FileName,text);
             }
         }
