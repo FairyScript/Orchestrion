@@ -198,6 +198,7 @@ namespace Orchestrion
                 {
                     Logger.Warn(e.Message);
                     network.Stop();
+                    state.ReadyFlag = false;
                     Dispatcher.Invoke(() => FFProcessList.Clear());
                 }
             }
