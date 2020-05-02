@@ -273,7 +273,10 @@ namespace Orchestrion
             catch (Exception e)
             {
                 Logger.Error(e.Message);
-                
+                Logger.Error(e.StackTrace);
+#if DEBUG
+                throw;
+#endif
             }
         }
 

@@ -20,7 +20,7 @@ namespace Orchestrion.Utils
         #endregion
 
         //PostMessage 方法
-        public static IntPtr gameWindowHandle;
+        public static IntPtr gameWindowHandle;//TODO:  这是危险的,需要更好的解决方案
         const int WM_KEYDOWN = 0x100;
         const int WM_KEYUP = 0x101;
         internal static void SetHandle(Process p)
@@ -36,6 +36,13 @@ namespace Orchestrion.Utils
         {
             Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
             PostMessage(gameWindowHandle, WM_KEYUP, (int)keycode, 0x001F0001);
+        }
+        internal static void PostReset()
+        {
+            foreach (var keycode in Config.config.KeyMap.Values)
+            {
+                PostMessage(gameWindowHandle, WM_KEYUP, (int)keycode, 0x001F0001);
+            }
         }
 
         //keybd_event 方法
@@ -57,17 +64,12 @@ namespace Orchestrion.Utils
             }
         }
 
-        internal static void Reset()
+        internal static void KeyboardReset()
         {
             foreach (var item in Config.config.KeyMap.Values)
             {
                 keybd_event((Keys)item, 0, 2, 0);
             }
-            //for (int i = 48; i <= 84; i++)
-            //{
-            //    Keys keycode = (Keys)Config.config.KeyMap[i];
-            //    keybd_event(keycode, 0, 2, 0);
-            //}
         }
     }
 }

@@ -60,7 +60,7 @@ namespace Orchestrion.Utils
 
         public void StartPlayback()
         {
-            KeyController.Reset();
+            KeyController.PostReset();
             playback?.Start();
             Logger.Info("MIDI: Start Playback");
         }
@@ -74,7 +74,7 @@ namespace Orchestrion.Utils
         {
             playback?.Stop();
             outputDevice?.Dispose();
-            KeyController.Reset();
+            KeyController.PostReset();
             Logger.Info("MIDI: Stop Playback");
         }
         public void StopPlayback(Action action)
