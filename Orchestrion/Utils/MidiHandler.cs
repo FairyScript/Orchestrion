@@ -135,12 +135,14 @@ namespace Orchestrion.Utils
             {
                 case NoteOnEvent @event:
                     {
-                        KeyController.KeyboardPress(@event.NoteNumber);
+                        KeyController.PostPress(@event.NoteNumber);
+                        //KeyController.KeyboardPress(@event.NoteNumber);
                         break;
                     }
                 case NoteOffEvent @event:
                     {
-                        KeyController.KeyboardRelease(@event.NoteNumber);
+                        KeyController.PostRelease(@event.NoteNumber);
+                        //KeyController.KeyboardRelease(@event.NoteNumber);
                         break;
                     }
             }

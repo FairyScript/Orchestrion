@@ -268,7 +268,7 @@ namespace Orchestrion
                         state.PlayingFlag = true;
                     });
                 }
-                Utils.Utils.SwitchToGameWindow((Process)ffxivProcessSelect.SelectedItem);
+                //Utils.Utils.SwitchToGameWindow((Process)ffxivProcessSelect.SelectedItem);
             }
             catch (Exception e)
             {
@@ -415,6 +415,7 @@ namespace Orchestrion
             {
                 var pid = (uint)(cb.SelectedItem as Process).Id;
                 ListenProcess(pid);
+                KeyController.SetHandle(cb.SelectedItem as Process);
             }
             else if(FFProcessList.Count == 0)
             {
