@@ -29,14 +29,20 @@ namespace Orchestrion.Utils
         }
         internal static void PostPress(SevenBitNumber noteNumber)
         {
-            Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
-            PostMessage(gameWindowHandle, WM_KEYDOWN, (int)keycode, 0x001F0001);
+            if (noteNumber <= 84 && noteNumber >= 48)
+            {
+                Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
+                PostMessage(gameWindowHandle, WM_KEYDOWN, (int)keycode, 0x001F0001);
+            }
         }
         internal static void PostRelease(SevenBitNumber noteNumber)
         {
-            Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
-            PostMessage(gameWindowHandle, WM_KEYUP, (int)keycode, 0x001F0001);
-        }
+            if (noteNumber <= 84 && noteNumber >= 48)
+            {
+                Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
+                PostMessage(gameWindowHandle, WM_KEYUP, (int)keycode, 0x001F0001);
+            }
+                      }
         internal static void PostReset()
         {
             foreach (var keycode in Config.config.KeyMap.Values)
