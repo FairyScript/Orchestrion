@@ -313,6 +313,7 @@ namespace Orchestrion
         /* === MIDI导入 === */
         private void importMidiBtn_Click(object sender, RoutedEventArgs e)
         {
+            var beforeCount = MidiFiles.Count;
             var midiFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "选择MIDI文件",
@@ -325,19 +326,24 @@ namespace Orchestrion
                 {
                     MidiFiles.Add(new MidiFileObject(path));
                 }
+                if(beforeCount != 0) midiListView.SelectedItem = MidiFiles.LastOrDefault();
             }
         }
 
         private void midiListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
-            activeMidi = (MidiFileObject)(sender as ListView).SelectedItem;
+            var listView = sender as ListView;
+            activeMidi = (MidiFileObject)listView.SelectedItem;
             TrackNames.Clear();
             if (activeMidi == null) return;
             try
             {
                 if (activeMidi.Tracks == null) activeMidi.ReadFile();
                 TrackNames.AddRange(activeMidi.TrackNames);
+
+                listView.ScrollIntoView(listView.SelectedItem);
+                listView.Focus();
             }
             catch (Exception error)
             {
@@ -365,7 +371,7 @@ namespace Orchestrion
                         MidiFiles.Remove(item);
                     }
                 }
-                if (listView.SelectedIndex == -1) listView.SelectedIndex = 0;//选中第一个
+                if (listView.SelectedIndex == -1) listView.SelectedItem = MidiFiles.LastOrDefault();//选中最后一个
             }
 
         }
