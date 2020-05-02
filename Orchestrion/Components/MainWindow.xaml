@@ -18,17 +18,19 @@
             <ColumnDefinition/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <ListView x:Name="midiListView" HorizontalAlignment="Left" Height="268" Margin="14,48,0,0" VerticalAlignment="Top" Width="176" ItemsSource="{Binding MidiFiles, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="midiListView_SelectionChanged" KeyDown="midiListView_KeyDown" SelectedIndex="0">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <TextBlock Text="{Binding Name}"/>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <ListView x:Name="trackListView" HorizontalAlignment="Left" Height="268" Margin="212,48,0,0" VerticalAlignment="Top" Width="176" ItemsSource="{Binding TrackNames, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="trackListView_SelectionChanged" SelectionMode="Single" SelectedIndex="0"/>
-        <Label x:Name="label_Midiselect" Content="MIDI选择" HorizontalAlignment="Left" Margin="14,22,0,0" VerticalAlignment="Top" Height="25" Width="62"/>
-        <Label x:Name="label_Trackselect" Content="轨道选择" HorizontalAlignment="Left" Margin="212,22,0,0" VerticalAlignment="Top" Height="25" Width="58"/>
-        <Button x:Name="importMidiBtn" Content="导入..." HorizontalAlignment="Left" Margin="116,26,0,0" VerticalAlignment="Top" Width="74" Click="importMidiBtn_Click" Height="19"/>
+        <Grid Margin="14,22,0.333,80" IsEnabled="{Binding state.PlayingFlag, Converter={StaticResource InverseBooleanConverter}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}">
+            <ListView x:Name="midiListView" HorizontalAlignment="Left" Height="268" Margin="0,26,0,0" VerticalAlignment="Top" Width="176" ItemsSource="{Binding MidiFiles, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="midiListView_SelectionChanged" KeyDown="midiListView_KeyDown" SelectedIndex="0">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}"/>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <ListView x:Name="trackListView" HorizontalAlignment="Left" Height="268" Margin="198,26,0,0" VerticalAlignment="Top" Width="176" ItemsSource="{Binding TrackNames, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="trackListView_SelectionChanged" SelectionMode="Single" SelectedIndex="0"/>
+            <Label x:Name="label_Midiselect" Content="MIDI选择" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Width="62"/>
+            <Label x:Name="label_Trackselect" Content="轨道选择" HorizontalAlignment="Left" Margin="198,0,0,0" VerticalAlignment="Top" Height="25" Width="58"/>
+            <Button x:Name="importMidiBtn" Content="导入..." HorizontalAlignment="Left" Margin="102,4,0,0" VerticalAlignment="Top" Width="74" Click="importMidiBtn_Click" Height="19"/>
+        </Grid>
         <Label x:Name="ffxivThreadLabel" Content="FFXIV进程" HorizontalAlignment="Left" Margin="27,48,0,0" VerticalAlignment="Top" Grid.Column="1" Height="25" Width="66"/>
         <ComboBox x:Name="ffxivProcessSelect" HorizontalAlignment="Left" Margin="98,48,0,0" VerticalAlignment="Top" Width="120" Height="25" ItemsSource="{Binding FFProcessList, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:MainWindow}}}" SelectionChanged="ffxivProcessSelect_SelectionChanged" Grid.Column="1" SelectedIndex="0">
             <ComboBox.ItemTemplate>
