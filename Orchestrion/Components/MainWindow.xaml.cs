@@ -44,7 +44,11 @@ namespace Orchestrion
         public MainWindow()
         {
             InitializeComponent();
+#if DEBUG
             Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Alpha";
+#else
+            Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Beta";
+#endif
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -219,7 +223,7 @@ namespace Orchestrion
                 {
                     var offset = ntp.GetCorrectionOffset();
                     state.SystemTimeOffset = offset;
-                    Logger.Info($"update ntp offset: {offset}");
+                    Logger.Trace($"update ntp offset: {offset}");
                 }
             }
             catch (Exception ex)
@@ -243,6 +247,7 @@ namespace Orchestrion
 
             try
             {
+                activeMidi = midiListView.SelectedItem as MidiFileObject;
                 if (activeMidi == null) throw new Exception("没有MIDI文件!");
                 activeMidi?.GetPlayback();
                 TimeSpan time = state.TimeWhenPlay - (DateTime.Now + state.SystemTimeOffset + state.NetTimeOffset);
@@ -334,13 +339,13 @@ namespace Orchestrion
         {
 
             var listView = sender as ListView;
-            activeMidi = (MidiFileObject)listView.SelectedItem;
+            var selectedMidi = (MidiFileObject)listView.SelectedItem;
             TrackNames.Clear();
-            if (activeMidi == null) return;
+            if (selectedMidi == null) return;
             try
             {
-                if (activeMidi.Tracks == null) activeMidi.ReadFile();
-                TrackNames.AddRange(activeMidi.TrackNames);
+                if (selectedMidi.Tracks == null) selectedMidi.ReadFile();
+                TrackNames.AddRange(selectedMidi.TrackNames);
 
                 listView.ScrollIntoView(listView.SelectedItem);
                 listView.Focus();
@@ -378,15 +383,17 @@ namespace Orchestrion
 
         private void trackListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (activeMidi == null) return;
+            var selectedMidi = (MidiFileObject)midiListView.SelectedItem;
+
+            if (selectedMidi == null) return;
             var viewIndex = (sender as ListView).SelectedIndex;
             if (viewIndex == -1)
             {
-                (sender as ListView).SelectedIndex = activeMidi.SelectedIndex;
+                (sender as ListView).SelectedIndex = selectedMidi.SelectedIndex;
             }
-            else if(viewIndex != activeMidi.SelectedIndex)
+            else if(viewIndex != selectedMidi.SelectedIndex)
             {
-                activeMidi.SelectedIndex = (sender as ListView).SelectedIndex;
+                selectedMidi.SelectedIndex = (sender as ListView).SelectedIndex;
             }
         }
 
@@ -454,8 +461,16 @@ namespace Orchestrion
                                     DateTime startTime = TimeZone.CurrentTimeZone.ToLocalTime(new DateTime(1970, 1, 1)); // 当地时区
                                     state.TimeWhenPlay = startTime.AddSeconds(timestamp + interval);
                                     //var msTime = (dt - (DateTime.Now + SystemTimeOffset)).TotalMilliseconds;
-                                    if (state.ReadyFlag) StartPlay();
-                                    Logger.Info($"net: TimeWhenPlay[{state.TimeWhenPlay}]");
+                                    if (state.ReadyFlag)
+                                    {
+                                        StartPlay();
+                                        Logger.Info($"net: TimeWhenPlay[{state.TimeWhenPlay}]");
+                                    }
+                                    else
+                                    {
+                                        Logger.Warn("在播放期间收到了网络开始的指令,已忽略.");
+                                    }
+
                                     break;
                                 }
                         }
