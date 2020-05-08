@@ -1,4 +1,5 @@
 ﻿using Melanchall.DryWetMidi.Common;
+using NLog;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -18,6 +19,7 @@ namespace Orchestrion.Utils
         [DllImport("user32.dll")]
         static extern bool PostMessage(IntPtr hWnd, uint Msg, int wParam, uint lParam);
         #endregion
+        Logger Logger = LogManager.GetCurrentClassLogger();
 
         //PostMessage 方法
         public IntPtr gameWindowHandle;//TODO:  这是危险的,需要更好的解决方案
@@ -49,6 +51,10 @@ namespace Orchestrion.Utils
             {
                 Keys keycode = (Keys)Config.config.KeyMap[noteNumber];
                 PostMessage(gameWindowHandle, WM_KEYDOWN, (int)keycode, 0x001F0001);
+            }
+            else
+            {
+                Logger.Warn($"非法的Note! {noteNumber}");
             }
         }
         private void PostRelease(SevenBitNumber noteNumber)
