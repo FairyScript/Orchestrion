@@ -22,8 +22,8 @@ namespace Orchestrion.Utils
         static Logger Logger = LogManager.GetCurrentClassLogger();
 
         //Ping
-        public uint Ping { get; set; } = 0;
-        private Dictionary<uint, DateTime> timePairs;
+        //public uint Ping { get; set; } = 0;
+        //private Dictionary<uint, DateTime> timePairs;
 
         public Network(uint processId)
             :base()

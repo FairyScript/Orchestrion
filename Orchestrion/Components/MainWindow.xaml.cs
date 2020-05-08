@@ -36,6 +36,7 @@ namespace Orchestrion
         public ConfigObject config { get; set; } = Config.config;
         Logger Logger = LogManager.GetCurrentClassLogger();
         private MidiFileObject activeMidi;
+        private KeyController kc;
         private Network network;
         private System.Timers.Timer playTimer;
         private System.Timers.Timer captureTimer;
@@ -140,26 +141,7 @@ namespace Orchestrion
         {
             foreach (var item in InputDevice.GetAll())
             {
-                item.EventReceived += (sender, ee) =>
-                {
-                    switch (ee.Event)
-                    {
-                        case NoteOnEvent @event:
-                            {
-                                Logger.Trace($"keyboard: {@event.NoteNumber} pressed");
-                                KeyController.KeyboardPress(@event.NoteNumber);
-                                break;
-                            }
-                        case NoteOffEvent @event:
-                            {
-                                Logger.Trace($"keyboard: {@event.NoteNumber} release");
-                                KeyController.KeyboardRelease(@event.NoteNumber);
-                                break;
-                            }
-                    }
-                };
                 MidiDeviceList.Add(item);
-
             }
         }
         private void InitializeNetwork()
@@ -250,6 +232,7 @@ namespace Orchestrion
                 activeMidi = midiListView.SelectedItem as MidiFileObject;
                 if (activeMidi == null) throw new Exception("没有MIDI文件!");
                 activeMidi?.GetPlayback();
+                activeMidi.controller = kc;
                 TimeSpan time = state.TimeWhenPlay - (DateTime.Now + state.SystemTimeOffset + state.NetTimeOffset);
                 if (time > TimeSpan.Zero)
                 {
@@ -431,11 +414,12 @@ namespace Orchestrion
             {
                 var pid = (uint)(cb.SelectedItem as Process).Id;
                 ListenProcess(pid);
-                KeyController.SetHandle(cb.SelectedItem as Process);
+                kc = new KeyController(cb.SelectedItem as Process);
             }
             else if(FFProcessList.Count == 0)
             {
                 network?.Stop();
+                kc = new KeyController();
             }
         }
 
@@ -565,24 +549,37 @@ namespace Orchestrion
 
         private void deviceConnect_Click(object sender, RoutedEventArgs e)
         {
-            try
+            var device = (midiDeviceSelect.SelectedItem as InputDevice);
+            if (!state.MidiDeviceConnected)
             {
-                if (!state.MidiDeviceConnected)
+                device.EventReceived += (se, ee) =>
                 {
-                    (midiDeviceSelect.SelectedItem as InputDevice)?.StartEventsListening();
-                    state.MidiDeviceConnected = true;
-                }
-                else
-                {
-                    (midiDeviceSelect.SelectedItem as InputDevice)?.StopEventsListening();
-                    state.MidiDeviceConnected = false;
-                }
-            }
-            catch (Exception)
-            {
+                    switch (ee.Event)
+                    {
+                        case NoteOnEvent @event:
+                            {
+                                Logger.Trace($"keyboard: {@event.NoteNumber} pressed");
+                                kc.Press(@event.NoteNumber);
+                                break;
+                            }
+                        case NoteOffEvent @event:
+                            {
+                                Logger.Trace($"keyboard: {@event.NoteNumber} release");
+                                kc.Release(@event.NoteNumber);
+                                break;
+                            }
+                    }
+                };
+                device?.StartEventsListening();
 
-                throw;
+                state.MidiDeviceConnected = true;
             }
+            else
+            {
+                device?.StopEventsListening();
+                state.MidiDeviceConnected = false;
+            }
+            
         }
 
         private void refreshDevice_Click(object sender, RoutedEventArgs e)

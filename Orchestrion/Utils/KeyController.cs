@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 namespace Orchestrion.Utils
 {
-    class KeyController
+    public class KeyController
     {
         #region DLL Import
         [DllImport("User32.dll")]
@@ -20,14 +20,30 @@ namespace Orchestrion.Utils
         #endregion
 
         //PostMessage 方法
-        public static IntPtr gameWindowHandle;//TODO:  这是危险的,需要更好的解决方案
+        public IntPtr gameWindowHandle;//TODO:  这是危险的,需要更好的解决方案
         const int WM_KEYDOWN = 0x100;
         const int WM_KEYUP = 0x101;
-        internal static void SetHandle(Process p)
+
+        public Action<SevenBitNumber> Press;
+        public Action<SevenBitNumber> Release;
+        public Action Reset;
+        public KeyController()
         {
-            gameWindowHandle = p.MainWindowHandle;
+            Press += KeyboardPress;
+            Release += KeyboardRelease;
+            Reset += KeyboardReset;
         }
-        internal static void PostPress(SevenBitNumber noteNumber)
+        public KeyController(Process p)
+        {
+            if (p == null) throw new Exception("传入的Process无效!");
+            gameWindowHandle = p.MainWindowHandle;
+
+            Press += PostPress;
+            Release += PostRelease;
+            Reset += PostReset;
+        }
+
+        private void PostPress(SevenBitNumber noteNumber)
         {
             if (noteNumber <= 84 && noteNumber >= 48)
             {
@@ -35,7 +51,7 @@ namespace Orchestrion.Utils
                 PostMessage(gameWindowHandle, WM_KEYDOWN, (int)keycode, 0x001F0001);
             }
         }
-        internal static void PostRelease(SevenBitNumber noteNumber)
+        private void PostRelease(SevenBitNumber noteNumber)
         {
             if (noteNumber <= 84 && noteNumber >= 48)
             {
@@ -43,7 +59,7 @@ namespace Orchestrion.Utils
                 PostMessage(gameWindowHandle, WM_KEYUP, (int)keycode, 0x001F0001);
             }
                       }
-        internal static void PostReset()
+        private void PostReset()
         {
             foreach (var keycode in Config.config.KeyMap.Values)
             {
@@ -52,7 +68,7 @@ namespace Orchestrion.Utils
         }
 
         //keybd_event 方法
-        internal static void KeyboardPress(SevenBitNumber noteNumber)
+        private void KeyboardPress(SevenBitNumber noteNumber)
         {
             if (noteNumber <= 84 && noteNumber >= 48)
             {
@@ -61,7 +77,7 @@ namespace Orchestrion.Utils
             }
         }
 
-        internal static void KeyboardRelease(SevenBitNumber noteNumber)
+        private void KeyboardRelease(SevenBitNumber noteNumber)
         {
             if (noteNumber <= 84 && noteNumber >= 48)
             {
@@ -70,7 +86,7 @@ namespace Orchestrion.Utils
             }
         }
 
-        internal static void KeyboardReset()
+        private void KeyboardReset()
         {
             foreach (var item in Config.config.KeyMap.Values)
             {

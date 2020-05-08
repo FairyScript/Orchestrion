@@ -2,6 +2,7 @@
 using Melanchall.DryWetMidi.Devices;
 using Melanchall.DryWetMidi.Interaction;
 using NLog;
+using Orchestrion.Components;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace Orchestrion.Utils
         public List<TrackChunk> Tracks { get; private set; }
         public List<string> TrackNames { get; private set; }
         public int SelectedIndex { get; set; } = 0;
-
+        public KeyController controller;
         //NLog
         static Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -60,7 +61,7 @@ namespace Orchestrion.Utils
 
         public void StartPlayback()
         {
-            KeyController.PostReset();
+            controller.Reset();
             playback?.Start();
             Logger.Info("MIDI: Start Playback");
         }
@@ -74,7 +75,7 @@ namespace Orchestrion.Utils
         {
             playback?.Stop();
             outputDevice?.Dispose();
-            KeyController.PostReset();
+            controller.Reset();
             Logger.Info("MIDI: Stop Playback");
         }
         public void StopPlayback(Action action)
@@ -135,13 +136,13 @@ namespace Orchestrion.Utils
             {
                 case NoteOnEvent @event:
                     {
-                        KeyController.PostPress(@event.NoteNumber);
+                        controller.Press(@event.NoteNumber);
                         //KeyController.KeyboardPress(@event.NoteNumber);
                         break;
                     }
                 case NoteOffEvent @event:
                     {
-                        KeyController.PostRelease(@event.NoteNumber);
+                        controller.Release(@event.NoteNumber);
                         //KeyController.KeyboardRelease(@event.NoteNumber);
                         break;
                     }
