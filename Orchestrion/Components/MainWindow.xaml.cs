@@ -20,6 +20,7 @@ using Orchestrion.Utils;
 using System.Linq;
 using NLog;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Orchestrion
 {
@@ -410,11 +411,28 @@ namespace Orchestrion
         {
             var cb = sender as ComboBox;
             Logger.Trace($"ffxivProcessSelect_SelectionChanged: {cb.SelectedIndex}");
+            var gameProcess = cb.SelectedItem as Process;
+
             if (cb.SelectedItem != null)
             {
-                var pid = (uint)(cb.SelectedItem as Process).Id;
-                ListenProcess(pid);
-                kc = new KeyController(cb.SelectedItem as Process);
+                //setup keycontroller
+                kc = new KeyController(gameProcess);
+                //listen network
+                var pid = (uint)gameProcess.Id;
+
+                //check game version to select opcode
+                var version = Utils.Utils.GetGameVersion(gameProcess);
+
+                Opcode opcode;
+                if (Config.SupportOpcode.TryGetValue(version,out opcode))
+                {
+                    ListenProcess(pid,opcode);
+                }
+                else
+                {
+                    //TODO: 读取外部opcode配置
+                    TopmostMessageBox.Show("游戏版本不被支持!网络合奏功能无法工作");
+                }
             }
             else if(FFProcessList.Count == 0)
             {
@@ -423,11 +441,15 @@ namespace Orchestrion
             }
         }
 
-        private void ListenProcess(uint pid)
+        private void ListenProcess(uint pid, Opcode opc)
         {
             if(network == null)
             {
-                network = new Network(pid);
+                network = new Network()
+                {
+                    ProcessID = pid,
+                    opcode = opc
+                };
 
                 network.OnReceived += (mode, interval, timestamp) =>
                 {

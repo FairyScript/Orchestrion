@@ -13,6 +13,7 @@ namespace Orchestrion.Utils
 
     public class Network : FFXIVNetworkMonitor
     {
+        public Opcode opcode;
         public bool IsListening { get; set; } = false;
         public delegate void NetPlayEvent(int mode, int interval, int timestamp);
         public NetPlayEvent OnReceived;
@@ -25,13 +26,13 @@ namespace Orchestrion.Utils
         //public uint Ping { get; set; } = 0;
         //private Dictionary<uint, DateTime> timePairs;
 
-        public Network(uint processId)
+        public Network()
             :base()
         {
             MonitorType = TCPNetworkMonitor.NetworkMonitorType.RawSocket;
             MessageReceived = MessageReceivedFunc;
             MessageSent = MessageSentFunc;
-            ProcessID = processId;
+            //ProcessID = processId;
         }
         public new void Start()
         {
@@ -56,7 +57,7 @@ namespace Orchestrion.Utils
         {
             var res = Parse(message);
 
-            if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.Countdown])//CountDown
+            if (res.header.MessageType == opcode.Countdown)//CountDown
             {
                 Logger.Info("CountDown Receive");
                 var countDownTime = res.data[36];
@@ -68,7 +69,7 @@ namespace Orchestrion.Utils
                 OnReceived?.Invoke(0,0,BitConverter.ToInt32(timeStampBytes, 0));
             }
 
-            if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.EnsembleReceive]) //ensemble
+            if (res.header.MessageType == opcode.EnsembleReceive) //ensemble
             {
                 Logger.Info("Ensemble_ready Receive");
                 var timeStampBytes = new byte[4];
@@ -77,7 +78,7 @@ namespace Orchestrion.Utils
                 OnReceived?.Invoke(1,5, BitConverter.ToInt32(timeStampBytes, 0));
             }
 
-            if (res.header.MessageType == Config.config.OpCode[ConfigObject.OpCodeEnum.Ping]) //Ping
+            if (res.header.MessageType == opcode.Ping) //Ping
             {
                 
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -94,6 +95,12 @@ namespace Orchestrion.Utils
                 return Buff.ToString();
             }
             return null;
+        }
+
+        public static string GetGameVersion(Process p)
+        {
+            var gameDirectory = p.MainModule.FileName;
+            return File.ReadAllText(Path.Combine(Path.GetDirectoryName(gameDirectory), "ffxivgame.ver"));
         }
     }
 }

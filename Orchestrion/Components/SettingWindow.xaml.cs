@@ -79,7 +79,7 @@ namespace Orchestrion.Components
             if (MessageBox.Show("您确定要重置设置吗？\n 包括键盘映射在内的所有设置都将恢复原始!", "警告：", MessageBoxButton.OKCancel) == MessageBoxResult.OK)
             {
 
-                Config.config = ConfigObject.GetDefaultConfig();
+                Config.config = new ConfigObject();
                 Config.Save();
                 Window_Initialized(this,new System.EventArgs());
 
