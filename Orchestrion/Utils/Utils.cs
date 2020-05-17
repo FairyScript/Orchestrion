@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
@@ -62,6 +63,33 @@ namespace Orchestrion.Utils
             }
         }
 
+        public static string GetProcessPath(int processId)
+        {
+            string MethodResult = "";
+            try
+            {
+                string Query = "SELECT ExecutablePath FROM Win32_Process WHERE ProcessId = " + processId;
+
+                using (ManagementObjectSearcher mos = new ManagementObjectSearcher(Query))
+                {
+                    using (ManagementObjectCollection moc = mos.Get())
+                    {
+                        string ExecutablePath = (from mo in moc.Cast<ManagementObject>() select mo["ExecutablePath"]).First().ToString();
+
+                        MethodResult = ExecutablePath;
+
+                    }
+
+                }
+
+            }
+            catch //(Exception ex)
+            {
+                //ex.HandleException();
+            }
+            return MethodResult;
+        }
+
         #region system member
         [DllImport("user32.dll")]
         public static extern void SwitchToThisWindow(IntPtr hWnd, bool fAltTab);
@@ -99,7 +127,7 @@ namespace Orchestrion.Utils
 
         public static string GetGameVersion(Process p)
         {
-            var gameDirectory = p.MainModule.FileName;
+            var gameDirectory = GetProcessPath(p.Id);
             return File.ReadAllText(Path.Combine(Path.GetDirectoryName(gameDirectory), "ffxivgame.ver"));
         }
     }

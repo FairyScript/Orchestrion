@@ -420,9 +420,20 @@ namespace Orchestrion
                 //listen network
                 var pid = (uint)gameProcess.Id;
 
+                //addon exit hook
+                gameProcess.Exited += (s, ee) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        if(gameProcess == cb.SelectedItem)
+                        {
+                            network?.Stop();
+                            FFProcessList.Remove(gameProcess);
+                        }
+                    });
+                };
                 //check game version to select opcode
                 var version = Utils.Utils.GetGameVersion(gameProcess);
-
                 Opcode opcode;
                 if (Config.SupportOpcode.TryGetValue(version,out opcode))
                 {
