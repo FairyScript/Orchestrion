@@ -421,6 +421,7 @@ namespace Orchestrion
                 var pid = (uint)gameProcess.Id;
 
                 //addon exit hook
+                gameProcess.EnableRaisingEvents = true;
                 gameProcess.Exited += (s, ee) =>
                 {
                     Dispatcher.Invoke(() =>
@@ -428,22 +429,33 @@ namespace Orchestrion
                         if(gameProcess == cb.SelectedItem)
                         {
                             network?.Stop();
-                            FFProcessList.Remove(gameProcess);
                         }
+                        Logger.Info($"进程 {gameProcess.Id} 已退出");
+                        FFProcessList.Remove(gameProcess);
                     });
                 };
-                //check game version to select opcode
-                var version = Utils.Utils.GetGameVersion(gameProcess);
-                Opcode opcode;
-                if (Config.SupportOpcode.TryGetValue(version,out opcode))
+
+                try
                 {
-                    ListenProcess(pid,opcode);
+                    //check game version to select opcode
+                    var version = Utils.Utils.GetGameVersion(gameProcess);
+                    Opcode opcode;
+                    if (Config.SupportOpcode.TryGetValue(version, out opcode))
+                    {
+                        ListenProcess(pid, opcode);
+                    }
+                    else
+                    {
+                        //TODO: 读取外部opcode配置
+                        TopmostMessageBox.Show("游戏版本不被支持!网络合奏功能将不会工作");
+                    }
                 }
-                else
+                catch (Exception)
                 {
-                    //TODO: 读取外部opcode配置
-                    TopmostMessageBox.Show("游戏版本不被支持!网络合奏功能无法工作");
+                    TopmostMessageBox.Show("游戏版本读取失败!网络合奏功能将不会工作");
+
                 }
+                
             }
             else if(FFProcessList.Count == 0)
             {
