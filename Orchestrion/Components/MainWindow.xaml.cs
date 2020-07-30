@@ -48,8 +48,6 @@ namespace Orchestrion
             InitializeComponent();
 #if DEBUG
             Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Alpha";
-#else
-            Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Beta";
 #endif
         }
 
@@ -226,7 +224,11 @@ namespace Orchestrion
         }
         void StartPlay()
         {
-            if (state.PlayingFlag) return;
+            if (state.PlayingFlag)
+            {
+                Logger.Warn("在演奏期间受到了合奏准备信号,返回");
+                return;
+            }
 
             try
             {
@@ -497,7 +499,7 @@ namespace Orchestrion
                                     }
                                     else
                                     {
-                                        Logger.Warn("在播放期间收到了网络开始的指令,已忽略.");
+                                        Logger.Warn("收到了网络开始的指令,但是没有准备,已忽略.");
                                     }
 
                                     break;

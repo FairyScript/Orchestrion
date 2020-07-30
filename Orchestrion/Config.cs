@@ -22,11 +22,18 @@ namespace Orchestrion
 
         public static Dictionary<string, Opcode> SupportOpcode = new Dictionary<string, Opcode>
         {
-            { "2020.03.18.0000.0000",new Opcode
+            { "2020.05.12.0000.0000",new Opcode
             {
-                Countdown = 0x026e,
-                EnsembleReceive = 0x02e9,
-                Ping = 0x00dd
+                Countdown = 0x0194,
+                EnsembleReceive = 0x006d,
+                Ping = 0x0
+            }
+            },
+            { "2020.07.16.0000.0000",new Opcode
+            {
+                Countdown = 0x0290,
+                EnsembleReceive = 0x01a3,
+                Ping = 0x0
             }
             }
         };

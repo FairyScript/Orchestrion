@@ -78,10 +78,6 @@ namespace Orchestrion.Utils
                 OnReceived?.Invoke(1,5, BitConverter.ToInt32(timeStampBytes, 0));
             }
 
-            if (res.header.MessageType == opcode.Ping) //Ping
-            {
-                
-            }
         }
         private static ParseResult Parse(byte[] data)
         {
