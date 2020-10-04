@@ -46,8 +46,10 @@ namespace Orchestrion
         public MainWindow()
         {
             InitializeComponent();
+            Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version}";
+
 #if DEBUG
-            Title += $" Ver {Assembly.GetExecutingAssembly().GetName().Version} Alpha";
+            Title += $" Alpha";
 #endif
         }
 
@@ -601,6 +603,9 @@ namespace Orchestrion
             {
                 device.EventReceived += (se, ee) =>
                 {
+#if DEBUG
+                    Console.WriteLine(ee.Event);
+#endif
                     switch (ee.Event)
                     {
                         case NoteOnEvent @event:
