@@ -170,7 +170,7 @@ namespace Orchestrion
                         FFProcessList.Clear();
                         FFProcessList.AddRange(list);
                         ffxivProcessSelect.SelectedIndex = 0;
-                        //captureTimer?.Stop();
+                        captureTimer?.Stop();
                     });
                 }
             }
@@ -424,21 +424,6 @@ namespace Orchestrion
                 //listen network
                 var pid = (uint)gameProcess.Id;
 
-                //addon exit hook
-                gameProcess.EnableRaisingEvents = true;
-                gameProcess.Exited += (s, ee) =>
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        if(gameProcess == cb.SelectedItem)
-                        {
-                            network?.Stop();
-                        }
-                        Logger.Info($"进程 {gameProcess.Id} 已退出");
-                        FFProcessList.Remove(gameProcess);
-                    });
-                };
-
                 try
                 {
                     //check game version to select opcode
@@ -452,14 +437,32 @@ namespace Orchestrion
                     {
                         //TODO: 读取外部opcode配置
                         TopmostMessageBox.Show("游戏版本不被支持!网络合奏功能将不会工作");
+                        return;
                     }
                 }
                 catch (Exception)
                 {
                     TopmostMessageBox.Show("游戏版本读取失败!网络合奏功能将不会工作");
+                    return;
 
                 }
-                
+
+                //addon exit hook
+                gameProcess.EnableRaisingEvents = true;
+                gameProcess.Exited += (s, ee) =>
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        if (gameProcess == cb.SelectedItem)
+                        {
+                            network?.Stop();
+                        }
+                        Logger.Info($"进程 {gameProcess.Id} 已退出");
+                        FFProcessList.Remove(gameProcess);
+                        captureTimer.Start();
+                    });
+                };
+
             }
             else if(FFProcessList.Count == 0)
             {
@@ -539,15 +542,8 @@ namespace Orchestrion
         }
         private void refreshProcessBtn_Click(object sender, RoutedEventArgs e)
         {
-            var list = Utils.Utils.FindFFProcess();
-
-            Dispatcher.Invoke(() =>
-            {
-                FFProcessList.Clear();
-                FFProcessList.AddRange(list);
-
-                //captureTimer?.Stop();
-            });
+            SyncTask();
+            
             //防止激情连打
             var btn = sender as Button;
             btn.IsEnabled = false;
